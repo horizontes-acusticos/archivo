@@ -7,13 +7,33 @@ import { toast } from 'sonner'
 import { Loader2, Play, Pause, Volume2 } from 'lucide-react'
 
 export const AudioPlayer: React.FC = () => {
-  const { currentTrack, setIsPlaying, playNext } = useAudio()
+  const { currentTrack, isPlaying: contextIsPlaying, setIsPlaying, playNext } = useAudio()
   const waveformRef = useRef<HTMLDivElement>(null)
   const [isPlaying, setPlaying] = useState(false)
   const [isWaveformLoading, setIsWaveformLoading] = useState(false)
   const [isAudioReady, setIsAudioReady] = useState(false)
-  const [volume, setVolume] = useState(0.5)
+  const [volume, setVolume] = useState(0.77) // Set default volume to 77%
+  
+  // Flag to track when we should auto-play the next track
+  const autoPlayNextRef = useRef(false)
 
+  // Sync local playing state with context playing state
+  useEffect(() => {
+    setPlaying(contextIsPlaying)
+  }, [contextIsPlaying])
+  
+  // Update playing state when currentTrack changes
+  useEffect(() => {
+    // If auto-play flag is set, we need to play as soon as the track loads
+    if (currentTrack) {
+      if (autoPlayNextRef.current) {
+        setPlaying(true)
+        setIsPlaying(true)
+        autoPlayNextRef.current = false // Reset the flag
+      }
+    }
+  }, [currentTrack, setIsPlaying])
+  
   // Always call hooks in the same order
   const audioUrl = currentTrack?.link || "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3"
 
@@ -23,6 +43,7 @@ export const AudioPlayer: React.FC = () => {
     progressColor: 'rgb(100, 0, 100)',
     url: audioUrl,
     dragToSeek: true,
+    autoplay: contextIsPlaying, // Auto-play when the context says we should be playing
   })
 
   // Listen for loading and ready events
@@ -35,6 +56,22 @@ export const AudioPlayer: React.FC = () => {
       
       const handleReady = () => {
         setIsAudioReady(true)
+        // Set volume when audio is ready
+        if (wavesurfer) {
+          wavesurfer.setVolume(volume)
+          
+          // Auto-play if needed - this handles the case when a new track is loaded
+          if (autoPlayNextRef.current || contextIsPlaying) {
+            setTimeout(() => {
+              wavesurfer.play()
+              setPlaying(true)
+              setIsPlaying(true)
+              console.log('Auto-playing track - triggered by', 
+                autoPlayNextRef.current ? 'autoPlayNextRef' : 'contextIsPlaying')
+              autoPlayNextRef.current = false
+            }, 100)
+          }
+        }
         // Waveform might still be rendering even when audio is ready
       }
 
@@ -50,10 +87,22 @@ export const AudioPlayer: React.FC = () => {
         console.error('Audio loading error:', error)
       }
 
+      const handlePlay = () => {
+        setPlaying(true)
+        setIsPlaying(true)
+      }
+
+      const handlePause = () => {
+        setPlaying(false)
+        setIsPlaying(false)
+      }
+
       wavesurfer.on('loading', handleLoading)
       wavesurfer.on('ready', handleReady)
       wavesurfer.on('decode', handleDecode)
       wavesurfer.on('error', handleError)
+      wavesurfer.on('play', handlePlay)
+      wavesurfer.on('pause', handlePause)
 
       return () => {
         if (wavesurfer.un) {
@@ -61,39 +110,31 @@ export const AudioPlayer: React.FC = () => {
           wavesurfer.un('ready', handleReady)
           wavesurfer.un('decode', handleDecode)
           wavesurfer.un('error', handleError)
+          wavesurfer.un('play', handlePlay)
+          wavesurfer.un('pause', handlePause)
         }
       }
     }
-  }, [wavesurfer])
+  }, [wavesurfer, volume, contextIsPlaying])
 
   // Listen for audio finish event to play next track
   useEffect(() => {
     if (wavesurfer) {
       const handleFinish = () => {
-        setPlaying(false)
-        setIsPlaying(false)
+        console.log('Track finished, playing next...')
         
+        // Set flag to indicate we should auto-play the next track
+        autoPlayNextRef.current = true
+        setIsPlaying(true) // Keep isPlaying true in the context
+        
+        // Get and set the next track
         const nextTrack = playNext()
         if (nextTrack) {
           toast.success(`Playing next: ${nextTrack.filename}`)
-          setIsWaveformLoading(true)
-          setIsAudioReady(false)
-          
-          // Wait for the new track to be ready before auto-playing
-          const handleNextReady = () => {
-            setIsAudioReady(true)
-            wavesurfer.play()
-            setPlaying(true)
-            setIsPlaying(true)
-            // Remove this specific listener after use
-            if (wavesurfer.un) {
-              wavesurfer.un('ready', handleNextReady)
-            }
-          }
-          
-          wavesurfer.on('ready', handleNextReady)
         } else {
           toast.info('Playlist finished')
+          setPlaying(false)
+          setIsPlaying(false)
         }
       }
 
@@ -182,7 +223,7 @@ export const AudioPlayer: React.FC = () => {
                 type="range"
                 min="0"
                 max="1"
-                step="0.05"
+                step="0.01"
                 value={volume}
                 onChange={handleVolumeChange}
                 className="w-24 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
@@ -190,9 +231,6 @@ export const AudioPlayer: React.FC = () => {
                   background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${volume * 100}%, #e2e8f0 ${volume * 100}%, #e2e8f0 100%)`
                 }}
               />
-              <span className="text-xs text-slate-500 w-8 text-center">
-                {Math.round(volume * 100)}%
-              </span>
             </div>
           </div>
         </div>
