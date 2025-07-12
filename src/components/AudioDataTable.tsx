@@ -10,7 +10,7 @@ import {
   useReactTable,
   SortingState,
 } from "@tanstack/react-table"
-import { Play, Pause, ArrowUpDown } from "lucide-react"
+import { Play, Pause } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -27,68 +27,61 @@ export const columns: ColumnDef<AudioTrack>[] = [
   {
     id: "play",
     header: "Play",
+    cell: ({ row }) => <AudioPlayCell track={row.original} />,
+    enableSorting: false,
+  },
+  { accessorKey: "id", header: "ID", enableSorting: false },
+  { accessorKey: "place", header: "Place", enableSorting: true },
+  { accessorKey: "date", header: "Date", enableSorting: true },
+  { accessorKey: "filename", header: "Filename", enableSorting: true },
+  { accessorKey: "length", header: "Length", enableSorting: true },
+  {
+    accessorKey: "link",
+    header: "Audio",
     cell: ({ row }) => {
-      const track = row.original
-      const { currentTrack, setCurrentTrack, isPlaying, setIsPlaying } = useAudio()
-      const isCurrent = currentTrack?.id === track.id
-
-      const handlePlayTrack = () => {
-        if (isCurrent) {
-          setIsPlaying(!isPlaying)
-        } else {
-          setCurrentTrack(track)
-          setIsPlaying(true)
-        }
-      }
-
+      const defaultUrl = "https://archivo-prod.sfo3.cdn.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3";
+      const audioUrl = row.original.link || defaultUrl;
       return (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handlePlayTrack}
-          className="h-8 w-8"
+        <a
+          href={audioUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 underline"
         >
-          {isCurrent && isPlaying ? (
-            <Pause className="h-4 w-4" />
-          ) : (
-            <Play className="h-4 w-4" />
-          )}
-        </Button>
-      )
+          Listen
+        </a>
+      );
     },
     enableSorting: false,
   },
-  {
-    accessorKey: "index",
-    header: "#",
-    cell: ({ row }) => <span className="font-medium">{row.index + 1}</span>,
-    enableSorting: false,
-  },
-  {
-    accessorKey: "title",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Title <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => <div>{row.getValue("title")}</div>,
-  },
-  {
-    accessorKey: "artist",
-    header: "Artist",
-    cell: ({ row }) => <div>{row.getValue("artist")}</div>,
-  },
-  {
-    accessorKey: "duration",
-    header: () => <div className="text-right">Duration</div>,
-    cell: ({ row }) => (
-      <div className="text-right">{row.getValue("duration") ?? "3:24"}</div>
-    ),
-  },
-]
+];
+
+function AudioPlayCell({ track }: { track: AudioTrack }) {
+  const { currentTrack, setCurrentTrack, isPlaying, setIsPlaying } = useAudio();
+  const isCurrent = currentTrack?.id === track.id;
+  const defaultUrl = "https://archivo-prod.sfo3.cdn.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3";
+  
+  const handlePlayTrack = () => {
+    // Create track with fallback URL for playing
+    const trackWithUrl = {
+      ...track,
+      link: track.link || defaultUrl
+    };
+    setCurrentTrack(trackWithUrl);
+    setIsPlaying(true);
+  };
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={handlePlayTrack}
+      className="h-8 w-8"
+      disabled={track.isAvailable !== "TRUE"}
+    >
+      {isCurrent && isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+    </Button>
+  );
+}
 
 interface AudioDataTableProps {
   data: AudioTrack[]
@@ -98,15 +91,23 @@ export function AudioDataTable({ data }: AudioDataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [filter, setFilter] = React.useState("")
 
-  // Filter tracks by title or artist
+  // Only show available tracks
+  const availableData = React.useMemo(
+    () => data.filter(track => track.isAvailable === "TRUE"),
+    [data]
+  )
+
+  // Filter by place, date, filename, length
   const filteredData = React.useMemo(
     () =>
-      data.filter(
+      availableData.filter(
         (track) =>
-          track.title.toLowerCase().includes(filter.toLowerCase()) ||
-          track.artist.toLowerCase().includes(filter.toLowerCase())
+          (track.place?.toLowerCase() ?? "").includes(filter.toLowerCase()) ||
+          (track.date?.toLowerCase() ?? "").includes(filter.toLowerCase()) ||
+          (track.filename?.toLowerCase() ?? "").includes(filter.toLowerCase()) ||
+          (track.length?.toLowerCase() ?? "").includes(filter.toLowerCase())
       ),
-    [data, filter]
+    [availableData, filter]
   )
 
   const table = useReactTable({
@@ -117,6 +118,11 @@ export function AudioDataTable({ data }: AudioDataTableProps) {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: {
+        pageSize: 24, // Show 24 files per page
+      },
+    },
   })
 
   const { currentTrack } = useAudio()
@@ -204,6 +210,15 @@ export function AudioDataTable({ data }: AudioDataTableProps) {
           {">>"}
         </Button>
       </div>
+      <div className="py-4">
+        {currentTrack && (
+          <div>
+            <h3 className="font-semibold text-lg">{currentTrack.filename}</h3>
+            <p className="text-slate-600">{currentTrack.place}</p>
+          </div>
+        )}
+      </div>
+      {/* SpectrogramPlayer removed: component not found */}
     </div>
   )
 }

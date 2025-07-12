@@ -1,13 +1,16 @@
 'use client'
 
 import React from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AudioDataTable } from '@/components/AudioDataTable' // <-- Use the new table
 import { AudioPlayer } from '@/components/AudioPlayer'
 import { AudioProvider } from '@/context/AudioContext'
-import { audioData } from '@/data/audioData'
+import { useCsvAudioData } from "@/hooks/useCsvAudioData"
+
+const CSV_URL = "https://archivo-prod.sfo3.cdn.digitaloceanspaces.com/audio/s01.csv"
 
 export default function Home() {
+  const { tracks, loading, error } = useCsvAudioData(CSV_URL)
+
   return (
     <AudioProvider>
       <div className="min-h-screen pb-64">
@@ -18,50 +21,15 @@ export default function Home() {
               Seasonal Audio Collection with Spectrogram Analysis
             </p>
           </header>
-
-          <Tabs defaultValue="autumn" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="autumn">Autumn</TabsTrigger>
-              <TabsTrigger value="winter">Winter</TabsTrigger>
-              <TabsTrigger value="spring">Spring</TabsTrigger>
-              <TabsTrigger value="summer">Summer</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="autumn" className="mt-6">
-              <div className="mb-4">
-                <h2 className="text-2xl font-semibold mb-2">Autumn Collection</h2>
-                <p className="text-slate-600">Warm and melancholic sounds of the falling season</p>
-              </div>
-              <AudioDataTable data={audioData.autumn} />
-            </TabsContent>
-            
-            <TabsContent value="winter" className="mt-6">
-              <div className="mb-4">
-                <h2 className="text-2xl font-semibold mb-2">Winter Collection</h2>
-                <p className="text-slate-600">Crisp and serene sounds of the cold season</p>
-              </div>
-              <AudioDataTable data={audioData.winter} />
-            </TabsContent>
-            
-            <TabsContent value="spring" className="mt-6">
-              <div className="mb-4">
-                <h2 className="text-2xl font-semibold mb-2">Spring Collection</h2>
-                <p className="text-slate-600">Fresh and vibrant sounds of renewal</p>
-              </div>
-              <AudioDataTable data={audioData.spring} />
-            </TabsContent>
-            
-            <TabsContent value="summer" className="mt-6">
-              <div className="mb-4">
-                <h2 className="text-2xl font-semibold mb-2">Summer Collection</h2>
-                <p className="text-slate-600">Bright and energetic sounds of the warm season</p>
-              </div>
-              <AudioDataTable data={audioData.summer} />
-            </TabsContent>
-          </Tabs>
+          {loading ? (
+            <div>Loading...</div>
+          ) : error ? (
+            <div>Error: {error}</div>
+          ) : (
+            <AudioDataTable data={tracks} />
+          )}
         </div>
       </div>
-      
       <AudioPlayer />
     </AudioProvider>
   )

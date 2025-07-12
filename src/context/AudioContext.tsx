@@ -2,11 +2,12 @@ import React, { createContext, useContext, useState, ReactNode } from 'react'
 
 export interface AudioTrack {
   id: string
-  title: string
-  artist: string
-  season: string
-  url: string
-  spectrogramUrl?: string
+  place: string
+  date: string
+  filename: string
+  length: string
+  link: string
+  isAvailable: string
 }
 
 interface AudioContextType {

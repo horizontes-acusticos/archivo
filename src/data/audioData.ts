@@ -8,11 +8,12 @@ const createDummyTracks = (season: string): AudioTrack[] => {
   for (let i = 1; i <= 24; i++) {
     tracks.push({
       id: `${season.toLowerCase()}-${i}`,
-      title: `${season} Symphony No. ${i}`,
-      artist: `Nature Orchestra`,
-      season,
-      url: `https://example-spaces.nyc3.digitaloceanspaces.com/audio/${season.toLowerCase()}/track-${i}.mp3`,
-      spectrogramUrl: `https://example-spaces.nyc3.digitaloceanspaces.com/spectrograms/${season.toLowerCase()}/track-${i}.json`
+      filename: `${season} Symphony No. ${i}`,
+      place: `Nature Orchestra`,
+      date: `2023-03-15`,
+      length: `1:00:00`,
+      link: `https://example-spaces.nyc3.digitaloceanspaces.com/audio/${season.toLowerCase()}/track-${i}.mp3`,
+      isAvailable: "TRUE"
     })
   }
   
