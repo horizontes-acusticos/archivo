@@ -20,21 +20,23 @@ export default function Home() {
   return (
     <AudioProvider>
       <div className="min-h-screen pb-64">
-        <div className="container mx-auto py-8 px-4">
-          <header className="mb-8">
-            <h1 className="text-4xl font-bold text-center mb-2">Archivo Horizontes Acústicos</h1>
-            <p className="text-slate-600 text-center">
+        <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
+          <header className="mb-4 sm:mb-8">
+            <h1 className="text-2xl sm:text-4xl font-bold text-center mb-2">Archivo Horizontes Acústicos</h1>
+            <p className="text-slate-600 text-center text-xs sm:text-sm">
               
             </p>
           </header>
           
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as keyof typeof CSV_URLS)}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="autumn">Otoño (S01)</TabsTrigger>
-              <TabsTrigger value="winter">Invierno (S02)</TabsTrigger>
-              <TabsTrigger value="spring">Primavera (S03)</TabsTrigger>
-              <TabsTrigger value="summer">Verano (S04)</TabsTrigger>
-            </TabsList>
+            <div className="mb-6">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-y-6 sm:gap-y-0 p-2">
+                <TabsTrigger value="autumn" className="text-xs sm:text-sm truncate">Otoño (S01)</TabsTrigger>
+                <TabsTrigger value="winter" className="text-xs sm:text-sm truncate">Invierno (S02)</TabsTrigger>
+                <TabsTrigger value="spring" className="text-xs sm:text-sm truncate">Primavera (S03)</TabsTrigger>
+                <TabsTrigger value="summer" className="text-xs sm:text-sm truncate">Verano (S04)</TabsTrigger>
+              </TabsList>
+            </div>
             
             <TabsContent value="autumn">
               <SeasonContent csvUrl={CSV_URLS.autumn} season="Autumn" />

@@ -34,7 +34,7 @@ const TabsList = ({ children, className }: { children: React.ReactNode; classNam
   return (
     <div
       className={cn(
-        "inline-flex h-10 items-center justify-center rounded-md bg-slate-100 p-1 text-slate-500",
+        "inline-flex min-h-10 items-center justify-center rounded-md bg-slate-100 p-1 text-slate-500",
         className
       )}
     >
@@ -58,7 +58,7 @@ const TabsTrigger = ({ value, children, className }: TabsTriggerProps) => {
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-2.5 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
         isActive
           ? "bg-white text-slate-950 shadow-sm"
           : "text-slate-500 hover:bg-slate-200 hover:text-slate-900",

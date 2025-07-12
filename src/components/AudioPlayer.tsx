@@ -191,6 +191,7 @@ export const AudioPlayer: React.FC = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-lg transition-all duration-300">
       <div className="max-w-6xl mx-auto">
+        {/* Header with title and minimize button */}
         <div className="flex items-center justify-between mb-3">
           <div className={`overflow-hidden ${isMinimized ? 'w-32 truncate' : ''}`}>
             {!isMinimized && (
@@ -206,7 +207,8 @@ export const AudioPlayer: React.FC = () => {
           </button>
         </div>
 
-        <div className={`bg-slate-50 rounded-lg p-4 ${isMinimized ? 'hidden' : ''}`}>
+        {/* Waveform section - keep it in DOM but visually hidden when minimized */}
+        <div className={`bg-slate-50 rounded-lg p-4 mb-4 ${isMinimized ? 'h-0 overflow-hidden opacity-0' : ''}`}>
           {/* Waveform with loading overlay */}
           <div className="relative mb-4">
             <div ref={waveformRef} className={isWaveformLoading ? 'opacity-30' : ''} />
@@ -221,7 +223,8 @@ export const AudioPlayer: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 mt-2">
+        {/* Controls - always at the bottom */}
+        <div className="flex items-center gap-4">
           <button
             onClick={handlePlayPause}
             className={`text-white p-3 rounded-lg flex items-center justify-center ${
