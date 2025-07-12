@@ -53,7 +53,27 @@ export const AudioPlayer: React.FC = () => {
   // Sync local playing state with context playing state
   useEffect(() => {
     setPlaying(contextIsPlaying)
-  }, [contextIsPlaying])
+    
+    // If context says we should be playing but we have a wavesurfer instance
+    if (contextIsPlaying && wavesurfer && isAudioReady) {
+      console.log('Context says play, starting playback')
+      try {
+        wavesurfer.play()
+      } catch (error) {
+        console.error('Error playing audio:', error)
+      }
+    }
+    
+    // If context says we should be paused but we have a wavesurfer instance
+    if (!contextIsPlaying && wavesurfer) {
+      console.log('Context says pause, pausing playback')
+      try {
+        wavesurfer.pause()
+      } catch (error) {
+        console.error('Error pausing audio:', error)
+      }
+    }
+  }, [contextIsPlaying, wavesurfer, isAudioReady])
   
   // Update playing state when currentTrack changes
   useEffect(() => {
@@ -88,28 +108,20 @@ export const AudioPlayer: React.FC = () => {
           
           // Auto-play if needed - this handles the case when a new track is loaded
           if (autoPlayNextRef.current || contextIsPlaying) {
-            console.log('Audio ready - preparing to auto-play track')
+            console.log('Audio ready - auto-playing immediately')
             
-            // Use a small delay to ensure everything is properly initialized
-            setTimeout(() => {
-              if (wavesurfer.isDestroyed) {
-                console.log('Wavesurfer was destroyed before play could start')
-                return
-              }
-              
-              try {
-                wavesurfer.play()
-                setPlaying(true)
-                setIsPlaying(true)
-                console.log('Auto-playing track - triggered by', 
-                  autoPlayNextRef.current ? 'autoPlayNextRef' : 'contextIsPlaying')
-              } catch (error) {
-                console.error('Error during auto-play:', error)
-                toast.error('Failed to auto-play track')
-              }
-              
-              autoPlayNextRef.current = false
-            }, 150) // Slightly longer delay for better reliability
+            try {
+              wavesurfer.play()
+              setPlaying(true)
+              setIsPlaying(true)
+              console.log('Auto-playing track - triggered by', 
+                autoPlayNextRef.current ? 'autoPlayNextRef' : 'contextIsPlaying')
+            } catch (error) {
+              console.error('Error during auto-play:', error)
+              toast.error('Failed to auto-play track')
+            }
+            
+            autoPlayNextRef.current = false
           }
         }
       }
@@ -202,19 +214,11 @@ export const AudioPlayer: React.FC = () => {
   const handlePlayPause = () => {
     try {
       if (wavesurfer && isAudioReady) {
-        // Check if wavesurfer is still valid and not destroyed
-        if (wavesurfer.isDestroyed) {
-          console.error('WaveSurfer instance is destroyed')
-          toast.error('Audio player needs to be reinitialized')
-          return
-        }
+        console.log('Player button clicked - toggling play/pause state')
         
-        // Use the standard playPause() method as documented
-        console.log('Toggling play/pause at current position')
-        wavesurfer.playPause()
-        
-        // We'll let the event listeners handle state updates
-        // This ensures our state is always in sync with the actual player state
+        // Toggle both the context state and let the useEffect sync it to the wavesurfer
+        setIsPlaying(!isPlaying)
+        setPlaying(!isPlaying)
       } else if (!isAudioReady) {
         toast.info('Audio is still loading...')
       } else {
