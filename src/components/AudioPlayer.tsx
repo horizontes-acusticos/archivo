@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from 'react'
 import { useAudio } from '@/context/AudioContext'
 import { useWavesurfer } from '@wavesurfer/react'
 import { toast } from 'sonner'
-import { Loader2, Play, Pause, Volume2 } from 'lucide-react'
+import { Loader2, Play, Pause, Volume2, Minimize2, Maximize2 } from 'lucide-react'
 
 export const AudioPlayer: React.FC = () => {
   const { currentTrack, isPlaying: contextIsPlaying, setIsPlaying, playNext } = useAudio()
@@ -13,6 +13,7 @@ export const AudioPlayer: React.FC = () => {
   const [isWaveformLoading, setIsWaveformLoading] = useState(false)
   const [isAudioReady, setIsAudioReady] = useState(false)
   const [volume, setVolume] = useState(0.77) // Set default volume to 77%
+  const [isMinimized, setIsMinimized] = useState(false)
   
   // Flag to track when we should auto-play the next track
   const autoPlayNextRef = useRef(false)
@@ -183,15 +184,29 @@ export const AudioPlayer: React.FC = () => {
     }
   }
 
+  const toggleMinimized = () => {
+    setIsMinimized(!isMinimized)
+  }
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-lg">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-lg transition-all duration-300">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-3">
-          <h3 className="font-semibold text-lg">{currentTrack.filename}</h3>
-          <p className="text-slate-600">{currentTrack.place}</p>
+        <div className="flex items-center justify-between mb-3">
+          <div className={`overflow-hidden ${isMinimized ? 'w-32 truncate' : ''}`}>
+            {!isMinimized && (
+              <h3 className="font-semibold text-lg">{currentTrack.filename}</h3>
+            )}
+            <p className="text-slate-600 truncate">{currentTrack.place}</p>
+          </div>
+          <button 
+            onClick={toggleMinimized} 
+            className="text-slate-500 hover:text-slate-700 p-1 rounded-md hover:bg-slate-100"
+          >
+            {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
+          </button>
         </div>
 
-        <div className="bg-slate-50 rounded-lg p-4">
+        <div className={`bg-slate-50 rounded-lg p-4 ${isMinimized ? 'hidden' : ''}`}>
           {/* Waveform with loading overlay */}
           <div className="relative mb-4">
             <div ref={waveformRef} className={isWaveformLoading ? 'opacity-30' : ''} />
@@ -204,38 +219,38 @@ export const AudioPlayer: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
 
-          <div className="flex items-center justify-center gap-4 mt-4">
-            <button
-              onClick={handlePlayPause}
-              className={`text-white p-3 rounded-lg flex items-center justify-center ${
-                isAudioReady 
-                  ? "bg-blue-500 hover:bg-blue-600" 
-                  : "bg-blue-300 cursor-wait"
-              }`}
-            >
-              {isPlaying ? (
-                <Pause className="w-5 h-5" />
-              ) : (
-                <Play className="w-5 h-5" />
-              )}
-            </button>
-            
-            <div className="flex items-center gap-2">
-              <Volume2 className="w-4 h-4 text-slate-600" />
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={handleVolumeChange}
-                className="w-24 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-                style={{
-                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${volume * 100}%, #e2e8f0 ${volume * 100}%, #e2e8f0 100%)`
-                }}
-              />
-            </div>
+        <div className="flex items-center gap-4 mt-2">
+          <button
+            onClick={handlePlayPause}
+            className={`text-white p-3 rounded-lg flex items-center justify-center ${
+              isAudioReady 
+                ? "bg-blue-500 hover:bg-blue-600" 
+                : "bg-blue-300 cursor-wait"
+            }`}
+          >
+            {isPlaying ? (
+              <Pause className="w-5 h-5" />
+            ) : (
+              <Play className="w-5 h-5" />
+            )}
+          </button>
+          
+          <div className="flex items-center gap-2 flex-1">
+            <Volume2 className="w-4 h-4 text-slate-600" />
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={volume}
+              onChange={handleVolumeChange}
+              className="w-24 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+              style={{
+                background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${volume * 100}%, #e2e8f0 ${volume * 100}%, #e2e8f0 100%)`
+              }}
+            />
           </div>
         </div>
       </div>
