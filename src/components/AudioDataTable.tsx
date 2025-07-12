@@ -112,7 +112,7 @@ export function AudioDataTable({ data }: AudioDataTableProps) {
     <div className="w-full">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter by title or artist..."
+          placeholder="Filtro..."
           value={filter}
           onChange={e => setFilter(e.target.value)}
           className="max-w-sm"

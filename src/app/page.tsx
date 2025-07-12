@@ -22,18 +22,18 @@ export default function Home() {
       <div className="min-h-screen pb-64">
         <div className="container mx-auto py-8 px-4">
           <header className="mb-8">
-            <h1 className="text-4xl font-bold text-center mb-2">Archivo</h1>
+            <h1 className="text-4xl font-bold text-center mb-2">Archivo Horizontes Acústicos</h1>
             <p className="text-slate-600 text-center">
-              Seasonal Audio Collection with Spectrogram Analysis
+              
             </p>
           </header>
           
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as keyof typeof CSV_URLS)}>
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="autumn">Autumn (S01)</TabsTrigger>
-              <TabsTrigger value="winter">Winter (S02)</TabsTrigger>
-              <TabsTrigger value="spring">Spring (S03)</TabsTrigger>
-              <TabsTrigger value="summer">Summer (S04)</TabsTrigger>
+              <TabsTrigger value="autumn">Otoño (S01)</TabsTrigger>
+              <TabsTrigger value="winter">Invierno (S02)</TabsTrigger>
+              <TabsTrigger value="spring">Primavera (S03)</TabsTrigger>
+              <TabsTrigger value="summer">Verano (S04)</TabsTrigger>
             </TabsList>
             
             <TabsContent value="autumn">
