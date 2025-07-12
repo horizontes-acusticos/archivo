@@ -4,11 +4,15 @@ import React, { useRef, useState, useEffect } from 'react'
 import { useAudio } from '@/context/AudioContext'
 import { useWavesurfer } from '@wavesurfer/react'
 import { toast } from 'sonner'
+import { Loader2, Play, Pause, Volume2 } from 'lucide-react'
 
 export const AudioPlayer: React.FC = () => {
   const { currentTrack, setIsPlaying, playNext } = useAudio()
   const waveformRef = useRef<HTMLDivElement>(null)
   const [isPlaying, setPlaying] = useState(false)
+  const [isWaveformLoading, setIsWaveformLoading] = useState(false)
+  const [isAudioReady, setIsAudioReady] = useState(false)
+  const [volume, setVolume] = useState(0.5)
 
   // Always call hooks in the same order
   const audioUrl = currentTrack?.link || "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3"
@@ -21,6 +25,47 @@ export const AudioPlayer: React.FC = () => {
     dragToSeek: true,
   })
 
+  // Listen for loading and ready events
+  useEffect(() => {
+    if (wavesurfer) {
+      const handleLoading = () => {
+        setIsWaveformLoading(true)
+        setIsAudioReady(false)
+      }
+      
+      const handleReady = () => {
+        setIsAudioReady(true)
+        // Waveform might still be rendering even when audio is ready
+      }
+
+      const handleDecode = () => {
+        // Waveform is fully rendered and ready
+        setIsWaveformLoading(false)
+      }
+
+      const handleError = (error: any) => {
+        setIsWaveformLoading(false)
+        setIsAudioReady(false)
+        toast.error('Failed to load audio')
+        console.error('Audio loading error:', error)
+      }
+
+      wavesurfer.on('loading', handleLoading)
+      wavesurfer.on('ready', handleReady)
+      wavesurfer.on('decode', handleDecode)
+      wavesurfer.on('error', handleError)
+
+      return () => {
+        if (wavesurfer.un) {
+          wavesurfer.un('loading', handleLoading)
+          wavesurfer.un('ready', handleReady)
+          wavesurfer.un('decode', handleDecode)
+          wavesurfer.un('error', handleError)
+        }
+      }
+    }
+  }, [wavesurfer])
+
   // Listen for audio finish event to play next track
   useEffect(() => {
     if (wavesurfer) {
@@ -31,14 +76,22 @@ export const AudioPlayer: React.FC = () => {
         const nextTrack = playNext()
         if (nextTrack) {
           toast.success(`Playing next: ${nextTrack.filename}`)
-          // Small delay to ensure the new track loads before auto-playing
-          setTimeout(() => {
-            if (wavesurfer) {
-              wavesurfer.play()
-              setPlaying(true)
-              setIsPlaying(true)
+          setIsWaveformLoading(true)
+          setIsAudioReady(false)
+          
+          // Wait for the new track to be ready before auto-playing
+          const handleNextReady = () => {
+            setIsAudioReady(true)
+            wavesurfer.play()
+            setPlaying(true)
+            setIsPlaying(true)
+            // Remove this specific listener after use
+            if (wavesurfer.un) {
+              wavesurfer.un('ready', handleNextReady)
             }
-          }, 500)
+          }
+          
+          wavesurfer.on('ready', handleNextReady)
         } else {
           toast.info('Playlist finished')
         }
@@ -68,17 +121,27 @@ export const AudioPlayer: React.FC = () => {
 
   const handlePlayPause = () => {
     try {
-      if (wavesurfer) {
+      if (wavesurfer && isAudioReady) {
         wavesurfer.playPause()
         setPlaying(!isPlaying)
         setIsPlaying(!isPlaying)
-        toast.success(isPlaying ? 'Audio paused' : 'Audio playing')
+      } else if (!isAudioReady) {
+        // Just prevent action when audio isn't ready
+        return
       } else {
         toast.error('Audio player not ready')
       }
     } catch (error) {
       console.error('Play/pause error:', error)
       toast.error('Failed to play/pause audio')
+    }
+  }
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value)
+    setVolume(newVolume)
+    if (wavesurfer) {
+      wavesurfer.setVolume(newVolume)
     }
   }
 
@@ -91,16 +154,50 @@ export const AudioPlayer: React.FC = () => {
         </div>
 
         <div className="bg-slate-50 rounded-lg p-4">
-          {/* Waveform */}
-          <div ref={waveformRef} className="mb-4" />
+          {/* Waveform with loading overlay */}
+          <div className="relative mb-4">
+            <div ref={waveformRef} className={isWaveformLoading ? 'opacity-30' : ''} />
+            {isWaveformLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-slate-50/80">
+                <div className="flex items-center gap-2 text-slate-600">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">Loading waveform...</span>
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center justify-center gap-4 mt-4">
             <button
               onClick={handlePlayPause}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+              disabled={!isAudioReady}
+              className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
-              {isPlaying ? 'Pause' : 'Play'}
+              {isPlaying ? (
+                <Pause className="w-5 h-5" />
+              ) : (
+                <Play className="w-5 h-5" />
+              )}
             </button>
+            
+            <div className="flex items-center gap-2">
+              <Volume2 className="w-4 h-4 text-slate-600" />
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={volume}
+                onChange={handleVolumeChange}
+                className="w-24 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${volume * 100}%, #e2e8f0 ${volume * 100}%, #e2e8f0 100%)`
+                }}
+              />
+              <span className="text-xs text-slate-500 w-8 text-center">
+                {Math.round(volume * 100)}%
+              </span>
+            </div>
           </div>
         </div>
       </div>
