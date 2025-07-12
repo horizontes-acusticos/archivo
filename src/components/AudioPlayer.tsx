@@ -17,6 +17,38 @@ export const AudioPlayer: React.FC = () => {
   
   // Flag to track when we should auto-play the next track
   const autoPlayNextRef = useRef(false)
+  
+  // Always define the audio URL before using it in hooks
+  const audioUrl = currentTrack?.link || "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3"
+  
+  // Keep track of the last URL to prevent unnecessary reloading
+  const lastUrlRef = useRef(audioUrl)
+
+  // Initialize the wavesurfer instance with the audioUrl
+  const { wavesurfer } = useWavesurfer({
+    container: waveformRef,
+    waveColor: 'rgb(200, 0, 200)',
+    progressColor: 'rgb(100, 0, 100)',
+    url: audioUrl,
+    dragToSeek: true,
+    autoplay: false, // Disable autoplay as we'll handle it manually for better control
+    height: 80, // Set fixed height to prevent layout shifts
+  })
+
+  // Check if audio URL has changed and we need to load a new file
+  useEffect(() => {
+    if (wavesurfer && lastUrlRef.current !== audioUrl) {
+      console.log('Audio URL changed, loading new track:', audioUrl)
+      lastUrlRef.current = audioUrl
+      
+      // Make sure we reset states properly when loading a new track
+      setIsAudioReady(false)
+      setIsWaveformLoading(true)
+      
+      // The wavesurfer.load() call will trigger the 'loading' event
+      // which our other useEffect will handle
+    }
+  }, [wavesurfer, audioUrl])
 
   // Sync local playing state with context playing state
   useEffect(() => {
@@ -34,46 +66,52 @@ export const AudioPlayer: React.FC = () => {
       }
     }
   }, [currentTrack, setIsPlaying])
-  
-  // Always call hooks in the same order
-  const audioUrl = currentTrack?.link || "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3"
-
-  const { wavesurfer } = useWavesurfer({
-    container: waveformRef,
-    waveColor: 'rgb(200, 0, 200)',
-    progressColor: 'rgb(100, 0, 100)',
-    url: audioUrl,
-    dragToSeek: true,
-    autoplay: contextIsPlaying, // Auto-play when the context says we should be playing
-  })
 
   // Listen for loading and ready events
   useEffect(() => {
     if (wavesurfer) {
       const handleLoading = () => {
-        setIsWaveformLoading(true)
-        setIsAudioReady(false)
+        // Only set loading state if it's not already loading
+        if (!isWaveformLoading) {
+          setIsWaveformLoading(true)
+          setIsAudioReady(false)
+        }
       }
       
       const handleReady = () => {
+        console.log('Wavesurfer ready event fired')
         setIsAudioReady(true)
+        
         // Set volume when audio is ready
         if (wavesurfer) {
           wavesurfer.setVolume(volume)
           
           // Auto-play if needed - this handles the case when a new track is loaded
           if (autoPlayNextRef.current || contextIsPlaying) {
+            console.log('Audio ready - preparing to auto-play track')
+            
+            // Use a small delay to ensure everything is properly initialized
             setTimeout(() => {
-              wavesurfer.play()
-              setPlaying(true)
-              setIsPlaying(true)
-              console.log('Auto-playing track - triggered by', 
-                autoPlayNextRef.current ? 'autoPlayNextRef' : 'contextIsPlaying')
+              if (wavesurfer.isDestroyed) {
+                console.log('Wavesurfer was destroyed before play could start')
+                return
+              }
+              
+              try {
+                wavesurfer.play()
+                setPlaying(true)
+                setIsPlaying(true)
+                console.log('Auto-playing track - triggered by', 
+                  autoPlayNextRef.current ? 'autoPlayNextRef' : 'contextIsPlaying')
+              } catch (error) {
+                console.error('Error during auto-play:', error)
+                toast.error('Failed to auto-play track')
+              }
+              
               autoPlayNextRef.current = false
-            }, 100)
+            }, 150) // Slightly longer delay for better reliability
           }
         }
-        // Waveform might still be rendering even when audio is ready
       }
 
       const handleDecode = () => {
@@ -163,10 +201,22 @@ export const AudioPlayer: React.FC = () => {
 
   const handlePlayPause = () => {
     try {
-      if (wavesurfer) {
+      if (wavesurfer && isAudioReady) {
+        // Check if wavesurfer is still valid and not destroyed
+        if (wavesurfer.isDestroyed) {
+          console.error('WaveSurfer instance is destroyed')
+          toast.error('Audio player needs to be reinitialized')
+          return
+        }
+        
+        // Use the standard playPause() method as documented
+        console.log('Toggling play/pause at current position')
         wavesurfer.playPause()
-        setPlaying(!isPlaying)
-        setIsPlaying(!isPlaying)
+        
+        // We'll let the event listeners handle state updates
+        // This ensures our state is always in sync with the actual player state
+      } else if (!isAudioReady) {
+        toast.info('Audio is still loading...')
       } else {
         toast.error('Audio player not ready')
       }
@@ -185,7 +235,9 @@ export const AudioPlayer: React.FC = () => {
   }
 
   const toggleMinimized = () => {
+    // Just toggle the minimized state without affecting playback
     setIsMinimized(!isMinimized)
+    // We're keeping the audio playing when minimized - only the UI changes
   }
 
   return (
@@ -207,11 +259,22 @@ export const AudioPlayer: React.FC = () => {
           </button>
         </div>
 
-        {/* Waveform section - keep it in DOM but visually hidden when minimized */}
-        <div className={`bg-slate-50 rounded-lg p-4 mb-4 ${isMinimized ? 'h-0 overflow-hidden opacity-0' : ''}`}>
-          {/* Waveform with loading overlay */}
+        {/* Waveform section - keep it in DOM with fixed height when minimized to prevent reloading */}
+        <div className={`bg-slate-50 rounded-lg transition-all duration-300 ${
+          isMinimized 
+            ? 'h-0 overflow-hidden opacity-0 m-0 p-0 absolute pointer-events-none' 
+            : 'p-4 mb-4 relative'
+        }`}>
+          {/* Waveform container - always present in DOM even when minimized */}
           <div className="relative mb-4">
-            <div ref={waveformRef} className={isWaveformLoading ? 'opacity-30' : ''} />
+            <div 
+              ref={waveformRef} 
+              className={isWaveformLoading ? 'opacity-30' : ''}
+              data-playing={isPlaying}
+              data-loading={isWaveformLoading}
+              // Maintain a stable height to prevent layout shifts
+              style={{ minHeight: '80px' }}
+            />
             {isWaveformLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-slate-50/80">
                 <div className="flex items-center gap-2 text-slate-600">
@@ -232,16 +295,16 @@ export const AudioPlayer: React.FC = () => {
           <div className="flex justify-center">
             <button
               onClick={handlePlayPause}
-              className={`text-white p-3 rounded-lg flex items-center justify-center ${
+              className={`border-2 bg-transparent p-2 sm:p-3 rounded-lg flex items-center justify-center ${
                 isAudioReady 
-                  ? "bg-blue-500 hover:bg-blue-600" 
-                  : "bg-blue-300 cursor-wait"
+                  ? "border-blue-500 text-blue-500 hover:bg-blue-50" 
+                  : "border-blue-300 text-blue-300 cursor-wait"
               }`}
             >
               {isPlaying ? (
-                <Pause className="w-5 h-5" />
+                <Pause className="w-4 h-4 sm:w-5 sm:h-5" />
               ) : (
-                <Play className="w-5 h-5" />
+                <Play className="w-4 h-4 sm:w-5 sm:h-5" />
               )}
             </button>
           </div>
