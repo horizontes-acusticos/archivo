@@ -151,8 +151,8 @@ export const AudioPlayer: React.FC = () => {
 
   if (!currentTrack) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4">
-        <div className="max-w-6xl mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-2 sm:p-4">
+        <div className="max-w-6xl mx-auto min-w-[340px]">
           <div className="text-center text-slate-500">
             <p>Select a track to start playing</p>
           </div>
@@ -189,15 +189,15 @@ export const AudioPlayer: React.FC = () => {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-lg transition-all duration-300">
-      <div className="max-w-6xl mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-2 sm:p-4 shadow-lg transition-all duration-300">
+      <div className="max-w-6xl mx-auto min-w-[340px]">
         {/* Header with title and minimize button */}
-        <div className="flex items-center justify-between mb-3">
-          <div className={`overflow-hidden ${isMinimized ? 'w-32 truncate' : ''}`}>
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
+          <div className={`overflow-hidden ${isMinimized ? 'w-24 sm:w-32 truncate' : ''}`}>
             {!isMinimized && (
-              <h3 className="font-semibold text-lg">{currentTrack.filename}</h3>
+              <h3 className="font-semibold text-sm sm:text-lg truncate">{currentTrack.filename}</h3>
             )}
-            <p className="text-slate-600 truncate">{currentTrack.place}</p>
+            <p className="text-slate-600 text-xs sm:text-sm truncate">{currentTrack.place}</p>
           </div>
           <button 
             onClick={toggleMinimized} 
@@ -224,23 +224,30 @@ export const AudioPlayer: React.FC = () => {
         </div>
 
         {/* Controls - always at the bottom */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={handlePlayPause}
-            className={`text-white p-3 rounded-lg flex items-center justify-center ${
-              isAudioReady 
-                ? "bg-blue-500 hover:bg-blue-600" 
-                : "bg-blue-300 cursor-wait"
-            }`}
-          >
-            {isPlaying ? (
-              <Pause className="w-5 h-5" />
-            ) : (
-              <Play className="w-5 h-5" />
-            )}
-          </button>
+        <div className="flex items-center justify-between">
+          {/* Empty div for spacing */}
+          <div className="w-16 sm:w-24"></div>
           
-          <div className="flex items-center gap-2 flex-1">
+          {/* Centered play button */}
+          <div className="flex justify-center">
+            <button
+              onClick={handlePlayPause}
+              className={`text-white p-3 rounded-lg flex items-center justify-center ${
+                isAudioReady 
+                  ? "bg-blue-500 hover:bg-blue-600" 
+                  : "bg-blue-300 cursor-wait"
+              }`}
+            >
+              {isPlaying ? (
+                <Pause className="w-5 h-5" />
+              ) : (
+                <Play className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+          
+          {/* Volume control on the right */}
+          <div className="flex items-center gap-2 w-16 sm:w-24 justify-end">
             <Volume2 className="w-4 h-4 text-slate-600" />
             <input
               type="range"
@@ -249,7 +256,7 @@ export const AudioPlayer: React.FC = () => {
               step="0.01"
               value={volume}
               onChange={handleVolumeChange}
-              className="w-24 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+              className="w-12 sm:w-16 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
               style={{
                 background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${volume * 100}%, #e2e8f0 ${volume * 100}%, #e2e8f0 100%)`
               }}
