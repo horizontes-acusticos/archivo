@@ -35,25 +35,6 @@ export const columns: ColumnDef<AudioTrack>[] = [
   { accessorKey: "date", header: "Date", enableSorting: true },
   { accessorKey: "filename", header: "Filename", enableSorting: true },
   { accessorKey: "length", header: "Length", enableSorting: true },
-  {
-    accessorKey: "link",
-    header: "Audio",
-    cell: ({ row }) => {
-      const defaultUrl = "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3";
-      const audioUrl = row.original.link || defaultUrl;
-      return (
-        <a
-          href={audioUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 underline"
-        >
-          Listen
-        </a>
-      );
-    },
-    enableSorting: false,
-  },
 ];
 
 function AudioPlayCell({ track }: { track: AudioTrack }) {
