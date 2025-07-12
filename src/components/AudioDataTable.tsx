@@ -120,7 +120,7 @@ export function AudioDataTable({ data }: AudioDataTableProps) {
     getPaginationRowModel: getPaginationRowModel(),
     initialState: {
       pagination: {
-        pageSize: 24, // Show 24 files per page
+        pageSize: 48, // Show 48 files per page
       },
     },
   })
