@@ -80,7 +80,7 @@ export const AudioPlayer: React.FC = () => {
         setIsWaveformLoading(false)
       }
 
-      const handleError = (error: any) => {
+      const handleError = (error: Error) => {
         setIsWaveformLoading(false)
         setIsAudioReady(false)
         toast.error('Failed to load audio')
@@ -115,7 +115,7 @@ export const AudioPlayer: React.FC = () => {
         }
       }
     }
-  }, [wavesurfer, volume, contextIsPlaying])
+  }, [wavesurfer, volume, contextIsPlaying, setIsPlaying, setPlaying])
 
   // Listen for audio finish event to play next track
   useEffect(() => {
@@ -146,7 +146,7 @@ export const AudioPlayer: React.FC = () => {
         }
       }
     }
-  }, [wavesurfer, playNext, setIsPlaying])
+  }, [wavesurfer, playNext, setIsPlaying, setPlaying])
 
   if (!currentTrack) {
     return (
@@ -208,7 +208,11 @@ export const AudioPlayer: React.FC = () => {
           <div className="flex items-center justify-center gap-4 mt-4">
             <button
               onClick={handlePlayPause}
-              className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg flex items-center justify-center"
+              className={`text-white p-3 rounded-lg flex items-center justify-center ${
+                isAudioReady 
+                  ? "bg-blue-500 hover:bg-blue-600" 
+                  : "bg-blue-300 cursor-wait"
+              }`}
             >
               {isPlaying ? (
                 <Pause className="w-5 h-5" />
