@@ -121,13 +121,10 @@ export const AudioPlayer: React.FC = () => {
 
   const handlePlayPause = () => {
     try {
-      if (wavesurfer && isAudioReady) {
+      if (wavesurfer) {
         wavesurfer.playPause()
         setPlaying(!isPlaying)
         setIsPlaying(!isPlaying)
-      } else if (!isAudioReady) {
-        // Just prevent action when audio isn't ready
-        return
       } else {
         toast.error('Audio player not ready')
       }
@@ -170,8 +167,7 @@ export const AudioPlayer: React.FC = () => {
           <div className="flex items-center justify-center gap-4 mt-4">
             <button
               onClick={handlePlayPause}
-              disabled={!isAudioReady}
-              className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg flex items-center justify-center"
             >
               {isPlaying ? (
                 <Pause className="w-5 h-5" />
