@@ -17,7 +17,6 @@
     "next": "15.3.5",
     "papaparse": "^5.5.3",
     "react": "^19.0.0",
-    "react-audio-spectrogram-player": "^2.0.1",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.3.1"
   },
