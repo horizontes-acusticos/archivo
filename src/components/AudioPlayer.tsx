@@ -34,7 +34,7 @@ export const AudioPlayer: React.FC = () => {
               <audio 
                 controls 
                 autoPlay={isPlaying}
-                src={currentTrack.link || "https://archivo-prod.sfo3.cdn.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3"}
+                src={currentTrack.link || "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3"}
                 className="w-full max-w-md"
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}

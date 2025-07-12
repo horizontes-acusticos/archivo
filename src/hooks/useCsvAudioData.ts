@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import Papa from "papaparse"
 import { AudioTrack } from "@/context/AudioContext"
 
-const BASE_URL = "https://archivo-prod.sfo3.cdn.digitaloceanspaces.com/audio"
+const BASE_URL = "https://archivo-prod.sfo3.digitaloceanspaces.com/audio"
 
 export function useCsvAudioData(csvUrl: string) {
   const [tracks, setTracks] = useState<AudioTrack[]>([])

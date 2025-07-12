@@ -8,10 +8,10 @@ import { useCsvAudioData } from "@/hooks/useCsvAudioData"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const CSV_URLS = {
-  autumn: "https://archivo-prod.sfo3.cdn.digitaloceanspaces.com/audio/s01.csv",
-  winter: "https://archivo-prod.sfo3.cdn.digitaloceanspaces.com/audio/s02.csv",
-  spring: "https://archivo-prod.sfo3.cdn.digitaloceanspaces.com/audio/s03.csv",
-  summer: "https://archivo-prod.sfo3.cdn.digitaloceanspaces.com/audio/s04.csv"
+  autumn: "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s01.csv",
+  winter: "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s02.csv",
+  spring: "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s03.csv",
+  summer: "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s04.csv"
 } 
 
 export default function Home() {

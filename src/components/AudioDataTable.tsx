@@ -39,7 +39,7 @@ export const columns: ColumnDef<AudioTrack>[] = [
     accessorKey: "link",
     header: "Audio",
     cell: ({ row }) => {
-      const defaultUrl = "https://archivo-prod.sfo3.cdn.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3";
+      const defaultUrl = "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3";
       const audioUrl = row.original.link || defaultUrl;
       return (
         <a
@@ -59,7 +59,7 @@ export const columns: ColumnDef<AudioTrack>[] = [
 function AudioPlayCell({ track }: { track: AudioTrack }) {
   const { currentTrack, setCurrentTrack, isPlaying, setIsPlaying } = useAudio();
   const isCurrent = currentTrack?.id === track.id;
-  const defaultUrl = "https://archivo-prod.sfo3.cdn.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3";
+  const defaultUrl = "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3";
   
   const handlePlayTrack = () => {
     // Create track with fallback URL for playing
