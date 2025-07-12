@@ -1,13 +1,58 @@
 'use client'
 
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { useAudio } from '@/context/AudioContext'
-import WaveSurfer from '@wavesurfer/react'
+import { useWavesurfer } from '@wavesurfer/react'
+import { toast } from 'sonner'
 
 export const AudioPlayer: React.FC = () => {
-  const { currentTrack, setIsPlaying } = useAudio()
+  const { currentTrack, setIsPlaying, playNext } = useAudio()
   const waveformRef = useRef<HTMLDivElement>(null)
   const [isPlaying, setPlaying] = useState(false)
+
+  // Always call hooks in the same order
+  const audioUrl = currentTrack?.link || "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3"
+
+  const { wavesurfer } = useWavesurfer({
+    container: waveformRef,
+    waveColor: 'rgb(200, 0, 200)',
+    progressColor: 'rgb(100, 0, 100)',
+    url: audioUrl,
+    dragToSeek: true,
+  })
+
+  // Listen for audio finish event to play next track
+  useEffect(() => {
+    if (wavesurfer) {
+      const handleFinish = () => {
+        setPlaying(false)
+        setIsPlaying(false)
+        
+        const nextTrack = playNext()
+        if (nextTrack) {
+          toast.success(`Playing next: ${nextTrack.filename}`)
+          // Small delay to ensure the new track loads before auto-playing
+          setTimeout(() => {
+            if (wavesurfer) {
+              wavesurfer.play()
+              setPlaying(true)
+              setIsPlaying(true)
+            }
+          }, 500)
+        } else {
+          toast.info('Playlist finished')
+        }
+      }
+
+      wavesurfer.on('finish', handleFinish)
+
+      return () => {
+        if (wavesurfer.un) {
+          wavesurfer.un('finish', handleFinish)
+        }
+      }
+    }
+  }, [wavesurfer, playNext, setIsPlaying])
 
   if (!currentTrack) {
     return (
@@ -21,13 +66,19 @@ export const AudioPlayer: React.FC = () => {
     )
   }
 
-  const audioUrl = currentTrack.link || "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3"
-
   const handlePlayPause = () => {
-    if (waveformRef.current) {
-      const wavesurfer = waveformRef.current as any
-      wavesurfer.playPause()
-      setPlaying(!isPlaying)
+    try {
+      if (wavesurfer) {
+        wavesurfer.playPause()
+        setPlaying(!isPlaying)
+        setIsPlaying(!isPlaying)
+        toast.success(isPlaying ? 'Audio paused' : 'Audio playing')
+      } else {
+        toast.error('Audio player not ready')
+      }
+    } catch (error) {
+      console.error('Play/pause error:', error)
+      toast.error('Failed to play/pause audio')
     }
   }
 
@@ -40,13 +91,8 @@ export const AudioPlayer: React.FC = () => {
         </div>
 
         <div className="bg-slate-50 rounded-lg p-4">
-          <WaveSurfer
-            container={waveformRef}
-            waveColor="rgb(200, 0, 200)"
-            progressColor="rgb(100, 0, 100)"
-            url={audioUrl}
-            mediaControls={true}
-          />
+          {/* Waveform */}
+          <div ref={waveformRef} className="mb-4" />
 
           <div className="flex items-center justify-center gap-4 mt-4">
             <button

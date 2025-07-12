@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { AudioDataTable } from '@/components/AudioDataTable'
 import { AudioPlayer } from '@/components/AudioPlayer'
-import { AudioProvider } from '@/context/AudioContext'
+import { AudioProvider, useAudio } from '@/context/AudioContext'
 import { useCsvAudioData } from "@/hooks/useCsvAudioData"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -61,6 +61,14 @@ export default function Home() {
 
 function SeasonContent({ csvUrl, season }: { csvUrl: string; season: string }) {
   const { tracks, loading, error } = useCsvAudioData(csvUrl)
+  const { setPlaylist } = useAudio()
+
+  // Set playlist when tracks load
+  React.useEffect(() => {
+    if (tracks.length > 0) {
+      setPlaylist(tracks)
+    }
+  }, [tracks, setPlaylist])
 
   if (loading) {
     return (
