@@ -69,3 +69,32 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+
+/* Mobile touch optimizations - prevent zoom on double tap */
+* {
+  touch-action: manipulation;
+}
+
+/* Disable zoom on mobile while preserving pinch-to-zoom functionality */
+@media (max-width: 768px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+  
+  /* Prevent zoom on form inputs */
+  input, textarea, select {
+    font-size: 16px;
+  }
+}
+
+/* Specific styles for table rows to handle touch properly */
+.table-row-touch {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
