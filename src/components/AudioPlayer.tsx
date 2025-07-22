@@ -143,7 +143,6 @@ export const SimpleAudioPlayer: React.FC = () => {
               </div>
             ] : []}
             layout="stacked-reverse"
-            defaultVolume={0.77}
             style={{
               '--rhap_theme-color': '#1e293b',
               '--rhap_background-color': 'transparent',
