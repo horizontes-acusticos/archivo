@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 
 export const HowlerAudioPlayer: React.FC = () => {
-  const { playlist, currentTrack, selectedTrackIndex, selectTrackByIndex } = useAudio()
+  const { currentTrack, setCurrentTrack, playNext, playPrevious } = useAudio()
   const howlRef = useRef<Howl | null>(null)
   const volumePopupRef = useRef<HTMLDivElement>(null)  // Add this ref
   const [isMobile, setIsMobile] = useState(false)
@@ -82,7 +82,7 @@ export const HowlerAudioPlayer: React.FC = () => {
       },
       onend: () => {
         setIsPlaying(false)
-        handleNext() // Auto-play next track
+        playNext() // Auto-play next track
       },
       onloaderror: (id, error) => {
         console.error('Audio load error:', error)
@@ -154,19 +154,11 @@ export const HowlerAudioPlayer: React.FC = () => {
   }
 
   const handleNext = () => {
-    if (playlist.length === 0) return
-    const nextIndex = selectedTrackIndex !== null && selectedTrackIndex < playlist.length - 1 
-      ? selectedTrackIndex + 1 
-      : 0
-    selectTrackByIndex(nextIndex)
+    playNext()
   }
 
   const handlePrevious = () => {
-    if (playlist.length === 0) return
-    const prevIndex = selectedTrackIndex !== null && selectedTrackIndex > 0 
-      ? selectedTrackIndex - 1 
-      : playlist.length - 1
-    selectTrackByIndex(prevIndex)
+    playPrevious()
   }
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {

@@ -10,6 +10,7 @@ export interface AudioTrack {
   length: string
   link: string
   isAvailable: string
+  season?: string
 }
 
 /* --------- 1.  Extend the shape that components expect --------- */
@@ -26,11 +27,16 @@ interface AudioContextType {
   isPlaying: boolean
   setIsPlaying: (b: boolean) => void
 
+  /* navigation functions */
+  playNext: () => void
+  playPrevious: () => void
+
   /* index-based helpers still used by the table */
   selectedTrackIndex: number | null
   highlightedTrackIndex: number | null
   selectTrackByIndex: (index: number) => void
   highlightTrackByIndex: (index: number) => void
+  clearSelection: () => void
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined)
@@ -69,6 +75,32 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     if (index >= 0 && index < playlist.length) setHighlightedTrackIndex(index)
   }
 
+  const clearSelection = () => {
+    setSelectedTrackIndex(null)
+    setHighlightedTrackIndex(null)
+    setCurrentTrack(null)
+  }
+
+  const playNext = () => {
+    if (!currentTrack || playlist.length === 0) return
+    
+    const currentIndex = playlist.findIndex(track => track.id === currentTrack.id)
+    if (currentIndex === -1) return
+    
+    const nextIndex = currentIndex < playlist.length - 1 ? currentIndex + 1 : 0
+    setCurrentTrack(playlist[nextIndex])
+  }
+
+  const playPrevious = () => {
+    if (!currentTrack || playlist.length === 0) return
+    
+    const currentIndex = playlist.findIndex(track => track.id === currentTrack.id)
+    if (currentIndex === -1) return
+    
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : playlist.length - 1
+    setCurrentTrack(playlist[prevIndex])
+  }
+
   /* --------- 2.  Provide the extended context --------- */
   return (
     <AudioContext.Provider value={{
@@ -80,10 +112,14 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       isPlaying,
       setIsPlaying,
 
+      playNext,
+      playPrevious,
+
       selectedTrackIndex,
       highlightedTrackIndex,
       selectTrackByIndex,
-      highlightTrackByIndex
+      highlightTrackByIndex,
+      clearSelection
     }}>
       {children}
     </AudioContext.Provider>

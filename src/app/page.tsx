@@ -15,6 +15,21 @@ const CSV_URLS = {
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<keyof typeof CSV_URLS>('autumn')
+  const { setPlaylist } = useAudio()
+  
+  // Load all tracks from all seasons into the global playlist
+  const { tracks: autumnTracks } = useCsvAudioData(CSV_URLS.autumn, 'autumn')
+  const { tracks: winterTracks } = useCsvAudioData(CSV_URLS.winter, 'winter')
+  const { tracks: springTracks } = useCsvAudioData(CSV_URLS.spring, 'spring')
+  const { tracks: summerTracks } = useCsvAudioData(CSV_URLS.summer, 'summer')
+  
+  // Combine all tracks and set global playlist
+  React.useEffect(() => {
+    const allTracks = [...autumnTracks, ...winterTracks, ...springTracks, ...summerTracks]
+    if (allTracks.length > 0) {
+      setPlaylist(allTracks)
+    }
+  }, [autumnTracks, winterTracks, springTracks, summerTracks, setPlaylist])
   
   return (
     <div className="min-h-screen pb-64">
@@ -37,19 +52,19 @@ export default function Home() {
           </div>
           
           <TabsContent value="autumn">
-            <SeasonContent csvUrl={CSV_URLS.autumn} season="Autumn" />
+            <SeasonContent csvUrl={CSV_URLS.autumn} season="autumn" currentTab={activeTab} />
           </TabsContent>
           
           <TabsContent value="winter">
-            <SeasonContent csvUrl={CSV_URLS.winter} season="Winter" />
+            <SeasonContent csvUrl={CSV_URLS.winter} season="winter" currentTab={activeTab} />
           </TabsContent>
           
           <TabsContent value="spring">
-            <SeasonContent csvUrl={CSV_URLS.spring} season="Spring" />
+            <SeasonContent csvUrl={CSV_URLS.spring} season="spring" currentTab={activeTab} />
           </TabsContent>
           
           <TabsContent value="summer">
-            <SeasonContent csvUrl={CSV_URLS.summer} season="Summer" />
+            <SeasonContent csvUrl={CSV_URLS.summer} season="summer" currentTab={activeTab} />
           </TabsContent>
         </Tabs>
       </div>
@@ -57,17 +72,10 @@ export default function Home() {
   )
 }
 
-function SeasonContent({ csvUrl, season }: { csvUrl: string; season: string }) {
-  const { tracks, loading, error } = useCsvAudioData(csvUrl)
-  const { setPlaylist } = useAudio()
-
-  // Set playlist when tracks load
-  React.useEffect(() => {
-    if (tracks.length > 0) {
-      setPlaylist(tracks)
-    }
-  }, [tracks, setPlaylist])
-
+function SeasonContent({ csvUrl, season, currentTab }: { csvUrl: string; season: string; currentTab: string }) {
+  const { tracks, loading, error } = useCsvAudioData(csvUrl, season)
+  // Remove setPlaylist - don't overwrite the global playlist
+  
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -90,5 +98,5 @@ function SeasonContent({ csvUrl, season }: { csvUrl: string; season: string }) {
     )
   }
 
-  return <AudioDataTable data={tracks} />
+  return <AudioDataTable data={tracks} currentTab={currentTab} />
 }

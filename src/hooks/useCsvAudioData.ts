@@ -4,7 +4,7 @@ import { AudioTrack } from "@/context/AudioContext"
 
 const BASE_URL = "https://archivo-prod.sfo3.digitaloceanspaces.com/audio"
 
-export function useCsvAudioData(csvUrl: string) {
+export function useCsvAudioData(csvUrl: string, season?: string) {
   const [tracks, setTracks] = useState<AudioTrack[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -36,6 +36,7 @@ export function useCsvAudioData(csvUrl: string) {
             length: row.lenght, // CSV uses 'lenght'
             link: BASE_URL + row.link,
             isAvailable: row.isAvalable ?? row.isAvailable ?? "TRUE",
+            season: season,
           }))
         setTracks(mapped)
         setLoading(false)
@@ -45,7 +46,7 @@ export function useCsvAudioData(csvUrl: string) {
         setLoading(false)
       }
     })
-  }, [csvUrl])
+  }, [csvUrl, season])
 
   return { tracks, loading, error }
 }

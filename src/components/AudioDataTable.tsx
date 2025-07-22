@@ -32,9 +32,10 @@ export const columns: ColumnDef<AudioTrack>[] = [
 
 interface AudioDataTableProps {
   data: AudioTrack[]
+  currentTab?: string
 }
 
-export function AudioDataTable({ data }: AudioDataTableProps) {
+export function AudioDataTable({ data, currentTab }: AudioDataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [filter, setFilter] = React.useState("")
 
@@ -72,8 +73,7 @@ export function AudioDataTable({ data }: AudioDataTableProps) {
     },
   })
 
-  const { playlist, selectedTrackIndex, highlightedTrackIndex, selectTrackByIndex, highlightTrackByIndex } = useAudio()
-  const currentTrack = selectedTrackIndex !== null && playlist.length > 0 ? playlist[selectedTrackIndex] : null
+  const { currentTrack, setCurrentTrack } = useAudio()
 
   return (
     <div className="w-full">
@@ -104,55 +104,42 @@ export function AudioDataTable({ data }: AudioDataTableProps) {
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map(row => {
                 const track = row.original
-                const trackIndex = playlist.findIndex(t => t.id === track.id)
-                const isPlaying = selectedTrackIndex === trackIndex
-                const isHighlighted = highlightedTrackIndex === trackIndex
+                
+                // Simple check: is this track the currently playing one?
+                const isPlaying = currentTrack?.id === track.id
+                
+                const handleRowDoubleClick = () => {
+                  setCurrentTrack(track)
+                }
                 
                 // Touch handling for mobile
                 let touchTimeout: NodeJS.Timeout
                 let touchCount = 0
                 
                 const handleTouchStart = (e: React.TouchEvent) => {
-                  // Prevent default zoom behavior
                   e.preventDefault()
                   touchCount++
                   
                   if (touchCount === 1) {
-                    // Single tap - highlight the row
                     touchTimeout = setTimeout(() => {
-                      if (trackIndex >= 0) {
-                        highlightTrackByIndex(trackIndex)
-                      }
+                      // Single tap - do nothing for now
                       touchCount = 0
-                    }, 300) // Wait 300ms to see if there's a second tap
+                    }, 300)
                   } else if (touchCount === 2) {
-                    // Double tap - play the track
                     clearTimeout(touchTimeout)
-                    if (trackIndex >= 0) {
-                      selectTrackByIndex(trackIndex)
-                    }
+                    setCurrentTrack(track)
                     touchCount = 0
                   }
                 }
                 
                 const handleRowClick = () => {
-                  if (trackIndex >= 0) {
-                    highlightTrackByIndex(trackIndex)
-                  }
-                }
-                
-                const handleRowDoubleClick = () => {
-                  if (trackIndex >= 0) {
-                    selectTrackByIndex(trackIndex)
-                  }
+                  // Single click - do nothing for now
                 }
                 
                 // Determine row styling based on state
-                let rowClassName = "table-row-touch cursor-pointer transition-colors select-none touch-manipulation "
+                let rowClassName = "cursor-pointer transition-colors select-none touch-manipulation "
                 if (isPlaying) {
                   rowClassName += "bg-slate-900 text-white hover:bg-slate-800"
-                } else if (isHighlighted) {
-                  rowClassName += "bg-slate-200 hover:bg-slate-300"
                 } else {
                   rowClassName += "hover:bg-slate-50"
                 }
