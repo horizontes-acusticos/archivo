@@ -44,6 +44,11 @@ export const HowlerAudioPlayer: React.FC = () => {
     return () => window.removeEventListener('resize', checkScreenSize)
   }, [])
 
+  // Define handlers before useEffect
+  const handleNext = () => {
+    playNext()
+  }
+
   // Initialize Howl when track changes
   useEffect(() => {
     if (!currentTrack?.link) return
@@ -62,7 +67,7 @@ export const HowlerAudioPlayer: React.FC = () => {
     const howl = new Howl({
       src: [currentTrack.link],
       html5: true, // Use HTML5 Audio for streaming
-      volume: isMuted ? 0 : volume,
+      volume: isMuted ? 0 : volume, // Set initial volume
       onload: () => {
         setIsLoading(false)
         setDuration(howl.duration())
@@ -82,7 +87,7 @@ export const HowlerAudioPlayer: React.FC = () => {
       },
       onend: () => {
         setIsPlaying(false)
-        playNext() // Auto-play next track
+        handleNext() // Use handleNext instead of direct playNext()
       },
       onloaderror: (id, error) => {
         console.error('Audio load error:', error)
@@ -102,7 +107,7 @@ export const HowlerAudioPlayer: React.FC = () => {
       howl.stop()
       howl.unload()
     }
-  }, [currentTrack?.link, isMuted, volume, playNext]) // Added missing dependencies
+  }, [currentTrack?.link]) // Removed isMuted and volume from dependencies
 
   // Update current time
   useEffect(() => {
@@ -154,10 +159,6 @@ export const HowlerAudioPlayer: React.FC = () => {
     } else {
       howlRef.current.play()
     }
-  }
-
-  const handleNext = () => {
-    playNext()
   }
 
   const handlePrevious = () => {
