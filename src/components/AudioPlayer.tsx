@@ -22,7 +22,6 @@ export const SimpleAudioPlayer: React.FC = () => {
   }, [playlist.length, selectedTrackIndex, selectTrackByIndex])
   
   // Use selectedTrackIndex directly from context - no local state
-  const currentTrackIndex = selectedTrackIndex ?? 0
   const currentTrack = playlist.length > 0 && selectedTrackIndex !== null ? playlist[selectedTrackIndex] : null
   const audioUrl = currentTrack?.link || ""
 
