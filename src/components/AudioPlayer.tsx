@@ -94,8 +94,8 @@ export const SimpleAudioPlayer: React.FC = () => {
     }
   }
 
-  const handleError = (e: any) => {
-    console.error('Audio error:', e)
+const handleError = (e: Event | Error) => {    
+  console.error('Audio error:', e)
     toast.error('Failed to load audio')
     setIsPlaying(false)
   }
