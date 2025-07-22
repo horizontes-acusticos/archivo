@@ -37,7 +37,7 @@ export const columns: ColumnDef<AudioTrack>[] = [
     accessorKey: "id", 
     header: "ID", 
     enableSorting: false,
-    enableHiding: true,
+    enableHiding: false, // Always show ID as it's essential
   },
   { 
     accessorKey: "place", 
@@ -55,7 +55,7 @@ export const columns: ColumnDef<AudioTrack>[] = [
     accessorKey: "filename", 
     header: "Filename", 
     enableSorting: true,
-    enableHiding: false, // Always show filename as it's the most important
+    enableHiding: true, // Allow hiding filename column
   },
   { 
     accessorKey: "length", 
