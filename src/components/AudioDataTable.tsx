@@ -9,9 +9,19 @@ import {
   getSortedRowModel,
   useReactTable,
   SortingState,
+  VisibilityState,
 } from "@tanstack/react-table"
+import { ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Table,
   TableBody,
@@ -23,11 +33,36 @@ import {
 import { AudioTrack, useAudio } from "@/context/AudioContext"
 
 export const columns: ColumnDef<AudioTrack>[] = [
-  { accessorKey: "id", header: "ID", enableSorting: false },
-  { accessorKey: "place", header: "Place", enableSorting: true },
-  { accessorKey: "date", header: "Date", enableSorting: true },
-  { accessorKey: "filename", header: "Filename", enableSorting: true },
-  { accessorKey: "length", header: "Length", enableSorting: true },
+  { 
+    accessorKey: "id", 
+    header: "ID", 
+    enableSorting: false,
+    enableHiding: true,
+  },
+  { 
+    accessorKey: "place", 
+    header: "Place", 
+    enableSorting: true,
+    enableHiding: true,
+  },
+  { 
+    accessorKey: "date", 
+    header: "Date", 
+    enableSorting: true,
+    enableHiding: true,
+  },
+  { 
+    accessorKey: "filename", 
+    header: "Filename", 
+    enableSorting: true,
+    enableHiding: false, // Always show filename as it's the most important
+  },
+  { 
+    accessorKey: "length", 
+    header: "Length", 
+    enableSorting: true,
+    enableHiding: true,
+  },
 ];
 
 interface AudioDataTableProps {
@@ -37,6 +72,7 @@ interface AudioDataTableProps {
 export function AudioDataTable({ data }: AudioDataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [filter, setFilter] = React.useState("")
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
 
   // Only show available tracks
   const availableData = React.useMemo(
@@ -60,8 +96,12 @@ export function AudioDataTable({ data }: AudioDataTableProps) {
   const table = useReactTable({
     data: filteredData,
     columns,
-    state: { sorting },
+    state: { 
+      sorting,
+      columnVisibility,
+    },
     onSortingChange: setSorting,
+    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -75,14 +115,46 @@ export function AudioDataTable({ data }: AudioDataTableProps) {
   const { currentTrack, setCurrentTrack } = useAudio()
 
   return (
-    <div className="w-full">
-      <div className="flex items-center py-4">
-        <Input
-          placeholder="Filtro..."
-          value={filter}
-          onChange={e => setFilter(e.target.value)}
-          className="max-w-sm"
-        />
+    <div className="w-full space-y-4">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          <Input
+            placeholder="Filtrar por lugar, fecha, archivo o duración..."
+            value={filter}
+            onChange={(event) => setFilter(event.target.value)}
+            className="max-w-md"
+          />
+        </div>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="ml-auto h-8">
+              <ChevronDown className="h-4 w-4" />
+              Columnas
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[150px] bg-white border shadow-md">
+            <DropdownMenuLabel>Mostrar columnas</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {table
+              .getAllColumns()
+              .filter((column) => column.getCanHide())
+              .map((column) => {
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {column.id}
+                  </DropdownMenuCheckboxItem>
+                )
+              })}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -156,8 +228,8 @@ export function AudioDataTable({ data }: AudioDataTableProps) {
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                <TableCell colSpan={table.getVisibleLeafColumns().length} className="h-24 text-center">
+                  Sin resultados.
                 </TableCell>
               </TableRow>
             )}
