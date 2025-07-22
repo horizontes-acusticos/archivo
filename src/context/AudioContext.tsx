@@ -11,17 +11,12 @@ export interface AudioTrack {
 }
 
 interface AudioContextType {
-  currentTrack: AudioTrack | null
-  setCurrentTrack: (track: AudioTrack | null) => void
-  isPlaying: boolean
-  setIsPlaying: (playing: boolean) => void
   playlist: AudioTrack[]
   setPlaylist: (tracks: AudioTrack[]) => void
-  playNext: () => AudioTrack | null
-  playPrevious: () => AudioTrack | null
-  forcePlayTrack: (track: AudioTrack) => void
-  shouldAutoPlay: boolean // Add this
-  setShouldAutoPlay: (should: boolean) => void // Add this
+  selectedTrackIndex: number | null
+  highlightedTrackIndex: number | null
+  selectTrackByIndex: (index: number) => void
+  highlightTrackByIndex: (index: number) => void
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined)
@@ -39,65 +34,31 @@ interface AudioProviderProps {
 }
 
 export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
-  const [currentTrack, setCurrentTrack] = useState<AudioTrack | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
   const [playlist, setPlaylist] = useState<AudioTrack[]>([])
-  // Add a flag to indicate when a track should auto-play
-  const [shouldAutoPlay, setShouldAutoPlay] = useState(false)
+  const [selectedTrackIndex, setSelectedTrackIndex] = useState<number | null>(null)
+  const [highlightedTrackIndex, setHighlightedTrackIndex] = useState<number | null>(null)
 
-  const playNext = () => {
-    if (!currentTrack || playlist.length === 0) return null
-    
-    const currentIndex = playlist.findIndex(track => track.id === currentTrack.id)
-    const nextIndex = currentIndex + 1
-    
-    if (nextIndex < playlist.length) {
-      const nextTrack = playlist[nextIndex]
-      setCurrentTrack(nextTrack)
-      setIsPlaying(true)
-      setShouldAutoPlay(true) // Trigger auto-play
-      return nextTrack
+  const selectTrackByIndex = (index: number) => {
+    if (index >= 0 && index < playlist.length) {
+      setSelectedTrackIndex(index)
+      setHighlightedTrackIndex(null) // Clear highlight when playing
     }
-    
-    return null
-  }
-  
-  const playPrevious = () => {
-    if (!currentTrack || playlist.length === 0) return null
-    
-    const currentIndex = playlist.findIndex(track => track.id === currentTrack.id)
-    const previousIndex = currentIndex - 1
-    
-    if (previousIndex >= 0) {
-      const previousTrack = playlist[previousIndex]
-      setCurrentTrack(previousTrack)
-      setIsPlaying(true)
-      setShouldAutoPlay(true) // Trigger auto-play
-      return previousTrack
-    }
-    
-    return null
   }
 
-  const forcePlayTrack = (track: AudioTrack) => {
-    setCurrentTrack(track)
-    setIsPlaying(true)
-    setShouldAutoPlay(true) // Trigger auto-play when user clicks play
+  const highlightTrackByIndex = (index: number) => {
+    if (index >= 0 && index < playlist.length) {
+      setHighlightedTrackIndex(index)
+    }
   }
 
   return (
     <AudioContext.Provider value={{
-      currentTrack,
-      setCurrentTrack,
-      isPlaying,
-      setIsPlaying,
       playlist,
       setPlaylist,
-      playNext,
-      playPrevious,
-      forcePlayTrack,
-      shouldAutoPlay, // Add this to the context
-      setShouldAutoPlay // Add this to allow the player to reset the flag
+      selectedTrackIndex,
+      highlightedTrackIndex,
+      selectTrackByIndex,
+      highlightTrackByIndex
     }}>
       {children}
     </AudioContext.Provider>
