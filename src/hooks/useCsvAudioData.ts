@@ -26,15 +26,17 @@ export function useCsvAudioData(csvUrl: string) {
           isAvalable?: string;
           isAvailable?: string;
         };
-        const mapped = (results.data as CsvRow[]).map(row => ({
-          id: row.id,
-          place: row.place,
-          date: row.date,
-          filename: row.filename,
-          length: row.lenght, // CSV uses 'lenght'
-          link: BASE_URL + row.link,
-          isAvailable: row.isAvalable ?? row.isAvailable ?? "TRUE", // fallback for both field names
-        }))
+        const mapped = (results.data as CsvRow[])
+          .filter(row => row.id && row.filename) // Filter out empty rows
+          .map(row => ({
+            id: row.id,
+            place: row.place,
+            date: row.date,
+            filename: row.filename,
+            length: row.lenght, // CSV uses 'lenght'
+            link: BASE_URL + row.link,
+            isAvailable: row.isAvalable ?? row.isAvailable ?? "TRUE",
+          }))
         setTracks(mapped)
         setLoading(false)
       },
