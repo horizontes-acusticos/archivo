@@ -32,10 +32,9 @@ export const columns: ColumnDef<AudioTrack>[] = [
 
 interface AudioDataTableProps {
   data: AudioTrack[]
-  currentTab?: string
 }
 
-export function AudioDataTable({ data, currentTab }: AudioDataTableProps) {
+export function AudioDataTable({ data }: AudioDataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [filter, setFilter] = React.useState("")
 
@@ -112,7 +111,7 @@ export function AudioDataTable({ data, currentTab }: AudioDataTableProps) {
                   setCurrentTrack(track)
                 }
                 
-                // Touch handling for mobile
+                // Touch handling for mobile double-tap
                 let touchTimeout: NodeJS.Timeout
                 let touchCount = 0
                 
@@ -122,7 +121,6 @@ export function AudioDataTable({ data, currentTab }: AudioDataTableProps) {
                   
                   if (touchCount === 1) {
                     touchTimeout = setTimeout(() => {
-                      // Single tap - do nothing for now
                       touchCount = 0
                     }, 300)
                   } else if (touchCount === 2) {
@@ -132,23 +130,15 @@ export function AudioDataTable({ data, currentTab }: AudioDataTableProps) {
                   }
                 }
                 
-                const handleRowClick = () => {
-                  // Single click - do nothing for now
-                }
-                
-                // Determine row styling based on state
-                let rowClassName = "cursor-pointer transition-colors select-none touch-manipulation "
-                if (isPlaying) {
-                  rowClassName += "bg-slate-900 text-white hover:bg-slate-800"
-                } else {
-                  rowClassName += "hover:bg-slate-50"
-                }
+                // Determine row styling
+                const rowClassName = isPlaying
+                  ? "cursor-pointer transition-colors select-none touch-manipulation bg-slate-900 text-white hover:bg-slate-800"
+                  : "cursor-pointer transition-colors select-none touch-manipulation hover:bg-slate-50"
                 
                 return (
                   <TableRow
                     key={row.id}
                     className={rowClassName}
-                    onClick={handleRowClick}
                     onDoubleClick={handleRowDoubleClick}
                     onTouchStart={handleTouchStart}
                     style={{ touchAction: 'manipulation' }}

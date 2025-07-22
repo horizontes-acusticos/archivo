@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 
 export const HowlerAudioPlayer: React.FC = () => {
-  const { currentTrack, setCurrentTrack, playNext, playPrevious } = useAudio()
+  const { currentTrack, playNext, playPrevious } = useAudio()
   const howlRef = useRef<Howl | null>(null)
   const volumePopupRef = useRef<HTMLDivElement>(null)  // Add this ref
   const [isMobile, setIsMobile] = useState(false)
@@ -102,7 +102,7 @@ export const HowlerAudioPlayer: React.FC = () => {
       howl.stop()
       howl.unload()
     }
-  }, [currentTrack?.link])
+  }, [currentTrack?.link, isMuted, volume, playNext]) // Added missing dependencies
 
   // Update current time
   useEffect(() => {
@@ -126,20 +126,23 @@ export const HowlerAudioPlayer: React.FC = () => {
 
   // Close volume popup when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (volumePopupRef.current && !volumePopupRef.current.contains(event.target as Node)) {
         setShowMobileVolume(false)
       }
     }
 
+    const handleMouseDown = (event: MouseEvent) => handleClickOutside(event)
+    const handleTouchStart = (event: TouchEvent) => handleClickOutside(event)
+
     if (showMobileVolume) {
-      document.addEventListener('mousedown', handleClickOutside)
-      document.addEventListener('touchstart', handleClickOutside)
+      document.addEventListener('mousedown', handleMouseDown)
+      document.addEventListener('touchstart', handleTouchStart)
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('touchstart', handleClickOutside)
+      document.removeEventListener('mousedown', handleMouseDown)
+      document.removeEventListener('touchstart', handleTouchStart)
     }
   }, [showMobileVolume])
 

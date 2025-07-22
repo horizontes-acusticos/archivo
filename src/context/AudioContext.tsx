@@ -30,13 +30,6 @@ interface AudioContextType {
   /* navigation functions */
   playNext: () => void
   playPrevious: () => void
-
-  /* index-based helpers still used by the table */
-  selectedTrackIndex: number | null
-  highlightedTrackIndex: number | null
-  selectTrackByIndex: (index: number) => void
-  highlightTrackByIndex: (index: number) => void
-  clearSelection: () => void
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined)
@@ -58,28 +51,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   /* playback */
   const [currentTrack, setCurrentTrack] = useState<AudioTrack | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
-
-  /* table helpers */
-  const [selectedTrackIndex, setSelectedTrackIndex] = useState<number | null>(null)
-  const [highlightedTrackIndex, setHighlightedTrackIndex] = useState<number | null>(null)
-
-  const selectTrackByIndex = (index: number) => {
-    if (index >= 0 && index < playlist.length) {
-      setSelectedTrackIndex(index)
-      setHighlightedTrackIndex(null)
-      setCurrentTrack(playlist[index])
-    }
-  }
-
-  const highlightTrackByIndex = (index: number) => {
-    if (index >= 0 && index < playlist.length) setHighlightedTrackIndex(index)
-  }
-
-  const clearSelection = () => {
-    setSelectedTrackIndex(null)
-    setHighlightedTrackIndex(null)
-    setCurrentTrack(null)
-  }
 
   const playNext = () => {
     if (!currentTrack || playlist.length === 0) return
@@ -113,13 +84,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       setIsPlaying,
 
       playNext,
-      playPrevious,
-
-      selectedTrackIndex,
-      highlightedTrackIndex,
-      selectTrackByIndex,
-      highlightTrackByIndex,
-      clearSelection
+      playPrevious
     }}>
       {children}
     </AudioContext.Provider>
