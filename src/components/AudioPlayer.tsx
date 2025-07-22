@@ -12,6 +12,7 @@ export const SimpleAudioPlayer: React.FC = () => {
   const playerRef = useRef<AudioPlayer>(null)
   const [isMobile, setIsMobile] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false)
   
   // Initialize first track if none selected and playlist is available
   useEffect(() => {
@@ -37,11 +38,13 @@ export const SimpleAudioPlayer: React.FC = () => {
     return () => window.removeEventListener('resize', checkScreenSize)
   }, [])
 
-  // Track current playback time
+  // Track current playback time and playing state
   useEffect(() => {
     const updateTime = () => {
       if (playerRef.current?.audio.current) {
-        setCurrentTime(playerRef.current.audio.current.currentTime || 0)
+        const audio = playerRef.current.audio.current
+        setCurrentTime(audio.currentTime || 0)
+        setIsPlaying(!audio.paused && !audio.ended)
       }
     }
 
@@ -100,7 +103,7 @@ export const SimpleAudioPlayer: React.FC = () => {
           <RealTimeDisplay
             filename={currentTrack.filename}
             currentTime={currentTime}
-            isPlaying={false}
+            isPlaying={isPlaying}
             date={currentTrack.date}
           />
         </div>
