@@ -1,138 +1,143 @@
-# Archivo - Seasonal Audio Collection
+# 📚 Documentation Index
 
-A minimal but functional single-page application built with Next.js, shadcn/ui, react-audio-spectrogram-player, and Firebase App Hosting.
+Welcome to the Archivo Horizontes Acústicos documentation. This project is a Next.js-based audio archive application with tab-based navigation and seamless audio playback.
 
-## Features
+## 📖 Documentation Files
 
-- **4 Seasonal Tabs**: Autumn, Winter, Spring, and Summer collections
-- **Audio Tables**: Each tab displays 24 audio tracks in a clean table format
-- **Persistent Audio Player**: Footer-based spectrogram player that persists across tab navigation
-- **Responsive Design**: Built with Tailwind CSS and shadcn/ui components
+### 🏗️ [Architecture Overview](./ARCHITECTURE.md)
+Comprehensive overview of the application architecture, component relationships, and design decisions.
 
-## Tech Stack
+**Topics Covered:**
+- System architecture diagram
+- Component responsibilities  
+- Data flow patterns
+- Visual selection logic
+- Performance optimizations
+- User experience features
 
-- **Next.js** (with App Router)
-- **Tailwind CSS** (via shadcn/ui)
-- **react-audio-spectrogram-player** for audio visualization
-- **Firebase Hosting** for deployment
-- **TypeScript** for type safety
+### 💻 [Code Structure Guide](./CODE_GUIDE.md)
+Deep dive into the implementation details, code patterns, and development approaches.
 
-## Getting Started
+**Topics Covered:**
+- Component implementations
+- State management patterns
+- Data processing logic
+- Performance optimizations
+- Development best practices
 
-### Prerequisites
+### 🚀 [Getting Started](./GETTING_STARTED.md)
+Step-by-step guide to set up, develop, and deploy the application.
 
-- Node.js 18+ 
-- npm or yarn
-- Firebase CLI (for deployment)
+**Topics Covered:**
+- Installation instructions
+- Development workflow
+- Project structure
+- Deployment options
+- Troubleshooting guide
 
-### Installation
+### 📋 [API Reference](./API_REFERENCE.md)
+Complete reference for all components, hooks, and interfaces in the application.
 
-1. Install dependencies:
-```bash
-npm install
-```
+**Topics Covered:**
+- AudioContext API
+- Component props and methods
+- Hook interfaces
+- Data formats
+- Error handling
 
-2. Run the development server:
-```bash
-npm run dev
-```
+## 🎯 Quick Navigation
 
-3. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### For Developers
+- **New to the project?** Start with [Getting Started](./GETTING_STARTED.md)
+- **Understanding the codebase?** Read [Architecture Overview](./ARCHITECTURE.md)
+- **Looking up APIs?** Check [API Reference](./API_REFERENCE.md)
+- **Implementation details?** See [Code Structure Guide](./CODE_GUIDE.md)
 
-### Building for Production
+### For Maintainers
+- **Deployment issues?** See [Getting Started - Deployment](./GETTING_STARTED.md#deployment)
+- **Performance problems?** Check [Architecture - Performance](./ARCHITECTURE.md#-performance-optimizations)
+- **Adding features?** Review [Code Guide - Development Patterns](./CODE_GUIDE.md#-development-patterns)
 
-```bash
-npm run build
-```
+### For Contributors
+- **Code style?** See [Getting Started - Contributing](./GETTING_STARTED.md#contributing)
+- **Understanding state flow?** Read [Code Guide - Data Flow](./CODE_GUIDE.md#-data-flow-implementation)
+- **Component structure?** Check [Architecture - Component Architecture](./ARCHITECTURE.md#-component-architecture)
 
-This will create an optimized production build in the `out` directory.
+## 🔑 Key Concepts
 
-### Firebase Deployment
+### Audio Selection System
+The application uses a unique **ID-based selection system** that ensures:
+- Only one track appears selected across all tabs
+- Audio continues playing when switching tabs
+- Simple, bulletproof cross-tab logic
 
-1. Login to Firebase:
-```bash
-firebase login
-```
+### Global Playlist Strategy
+All tracks from all seasons are loaded into a single global playlist, enabling:
+- Seamless navigation between seasons
+- Efficient next/previous functionality
+- Unified state management
 
-2. Initialize Firebase project:
-```bash
-firebase init hosting
-```
+### Component Architecture
+Clean separation of concerns with:
+- **AudioContext**: Global state management
+- **AudioDataTable**: Track display and selection
+- **HowlerAudioPlayer**: Audio playback controls
+- **useCsvAudioData**: Data fetching and processing
 
-3. Deploy to Firebase:
-```bash
-npm run deploy
-```
+## 🛠️ Technology Stack
 
-## Project Structure
+- **Framework**: Next.js 14 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + Shadcn/ui
+- **Audio**: Howler.js
+- **Data Processing**: Papa Parse (CSV)
+- **State Management**: React Context
+- **Deployment**: Vercel (recommended)
 
-```
-src/
-├── app/
-│   ├── globals.css       # Global styles with CSS variables
-│   ├── layout.tsx        # Root layout
-│   └── page.tsx          # Main page with tabs
-├── components/
-│   ├── ui/               # shadcn/ui components
-│   │   ├── button.tsx
-│   │   ├── tabs.tsx
-│   │   └── table.tsx
-│   ├── AudioTable.tsx    # Table component for audio tracks
-│   └── AudioPlayer.tsx   # Footer spectrogram player
-├── context/
-│   └── AudioContext.tsx  # Global audio state management
-├── data/
-│   └── audioData.ts      # Mock audio track data
-├── lib/
-│   └── utils.ts          # Utility functions
-└── types/
-    └── react-audio-spectrogram-player.d.ts  # Type definitions
-```
+## 📊 Project Statistics
 
-## Audio Data
+- **Components**: 5 main components
+- **Hooks**: 1 custom hook
+- **Context Providers**: 1 audio context
+- **CSV Data Sources**: 4 seasonal files
+- **Supported Devices**: Desktop, tablet, mobile
+- **Browser Support**: Modern browsers (90%+ support)
 
-The application uses dummy audio URLs as placeholders. In a production environment, you would replace these with actual audio files hosted on DigitalOcean Spaces or another CDN.
+## 🎵 Audio Features
 
-## Features in Detail
+- **Continuous Playback**: Audio never stops when switching tabs
+- **Global Navigation**: Next/Previous works across all seasons
+- **Visual Feedback**: Clear indication of currently playing track
+- **Mobile Support**: Touch gestures and responsive controls
+- **Format Support**: MP3, WAV, and other Howler.js supported formats
 
-### Tab Navigation
-- Four seasonal collections (Autumn, Winter, Spring, Summer)
-- Smooth tab switching without losing audio player state
-- Each collection contains 24 unique tracks
+## 📱 Responsive Design
 
-### Audio Player
-- Fixed footer position for persistent playback
-- Spectrogram visualization with color-coded annotations
-- Play/pause functionality integrated with table controls
-- Mock annotation data for demonstration
+The application is fully responsive with:
+- **Desktop**: Full-featured interface with mouse interactions
+- **Tablet**: Optimized layouts for touch interactions  
+- **Mobile**: Compact layouts with gesture support
 
-### Table Interface
-- Clean, responsive table design
-- Play/pause buttons for each track
-- Visual indication of currently playing track
-- Track metadata display (title, artist, duration)
+## 🔧 Development Notes
 
-## Customization
+### Code Quality
+- Full TypeScript coverage
+- ESLint configuration
+- Component-based architecture
+- Clear separation of concerns
 
-### Adding Real Audio Files
+### Performance
+- Memoized filtering operations
+- Conditional state updates
+- Efficient re-rendering patterns
+- Optimized touch event handling
 
-Replace the URLs in `src/data/audioData.ts` with your actual audio file URLs:
+### Accessibility
+- Keyboard navigation support
+- Screen reader friendly
+- High contrast ratios
+- Touch target sizing
 
-```typescript
-const tracks = [{
-  id: 'autumn-1',
-  title: 'Your Track Title',
-  artist: 'Artist Name',
-  season: 'Autumn',
-  url: 'https://your-cdn.com/audio/track.mp3',
-  spectrogramUrl: 'https://your-cdn.com/spectrograms/track.json'
-}]
-```
+---
 
-### Styling
-
-The application uses Tailwind CSS with custom CSS variables. Modify `src/app/globals.css` to change the color scheme.
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
+For specific questions or issues, please refer to the appropriate documentation section above or check the project's GitHub repository.
