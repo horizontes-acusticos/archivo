@@ -178,8 +178,6 @@ const handleError = (e: Event | Error) => {
             showFilledVolume={true}
             showDownloadProgress={true}
             showFilledProgress={true}
-            showCurrentTime={true}
-            showDuration={true}
             volumeJumpStep={0.01}
             progressJumpSteps={{ backward: 5000, forward: 5000 }}
             customAdditionalControls={!isMobile ? [
