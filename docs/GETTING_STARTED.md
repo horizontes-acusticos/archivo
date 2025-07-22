@@ -214,6 +214,6 @@ npm run type-check
 # Run linting
 npm run lint
 
-# Run tests (if configured)
-npm test
+# Run both quality checks
+npm run lint && npm run type-check
 ```
