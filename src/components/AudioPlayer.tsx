@@ -5,27 +5,25 @@ import { useAudio } from '@/context/AudioContext'
 import { toast } from 'sonner'
 import AudioPlayer from 'react-h5-audio-player'
 import 'react-h5-audio-player/lib/styles.css'
+import { RealTimeDisplay } from './RealTimeDisplay'
 
 export const SimpleAudioPlayer: React.FC = () => {
-  const { 
-    currentTrack, 
-    isPlaying: contextIsPlaying, 
-    setIsPlaying, 
-    playNext, 
-    playPrevious,
-    shouldAutoPlay,
-    setShouldAutoPlay
-  } = useAudio()
+  const { playlist, selectedTrackIndex, selectTrackByIndex } = useAudio()
   const playerRef = useRef<AudioPlayer>(null)
   const [isMobile, setIsMobile] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
   
-  // Flag to track when we should auto-play the next track
-  const autoPlayNextRef = useRef(false)
-  // Track the current track ID to detect changes
-  const currentTrackIdRef = useRef<string | null>(null)
+  // Initialize first track if none selected and playlist is available
+  useEffect(() => {
+    if (playlist.length > 0 && selectedTrackIndex === null) {
+      selectTrackByIndex(0)
+    }
+  }, [playlist.length, selectedTrackIndex, selectTrackByIndex])
   
-  // Always define the audio URL before using it
-  const audioUrl = currentTrack?.link || "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s01/S4A11192_20230315_150854.mp3"
+  // Use selectedTrackIndex directly from context - no local state
+  const currentTrackIndex = selectedTrackIndex ?? 0
+  const currentTrack = playlist.length > 0 && selectedTrackIndex !== null ? playlist[selectedTrackIndex] : null
+  const audioUrl = currentTrack?.link || ""
 
   // Check screen size
   useEffect(() => {
@@ -39,96 +37,49 @@ export const SimpleAudioPlayer: React.FC = () => {
     return () => window.removeEventListener('resize', checkScreenSize)
   }, [])
 
-  // Sync context playing state with player
+  // Track current playback time
   useEffect(() => {
-    if (playerRef.current?.audio.current) {
-      if (contextIsPlaying && playerRef.current.audio.current.paused) {
-        playerRef.current.audio.current.play().catch(console.error)
-      } else if (!contextIsPlaying && !playerRef.current.audio.current.paused) {
-        playerRef.current.audio.current.pause()
+    const updateTime = () => {
+      if (playerRef.current?.audio.current) {
+        setCurrentTime(playerRef.current.audio.current.currentTime || 0)
       }
     }
-  }, [contextIsPlaying])
 
-  // Handle auto-play for track changes
+    const interval = setInterval(updateTime, 100)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Auto-play when track changes (but not on initial load)
   useEffect(() => {
-    if (currentTrack && playerRef.current?.audio.current) {
-      // Check if this is a new track or if shouldAutoPlay is true
-      const isNewTrack = currentTrackIdRef.current !== currentTrack.id
-      currentTrackIdRef.current = currentTrack.id
+    if (playerRef.current?.audio.current && currentTrack && selectedTrackIndex !== null) {
+      // Small delay to ensure the audio element is ready
+      const timer = setTimeout(() => {
+        playerRef.current?.audio.current?.play().catch(error => {
+          console.log('Auto-play blocked by browser:', error)
+        })
+      }, 100)
       
-      if (shouldAutoPlay || autoPlayNextRef.current || isNewTrack) {
-        // Small delay to ensure the audio src has loaded
-        setTimeout(() => {
-          if (playerRef.current?.audio.current) {
-            playerRef.current.audio.current.play().then(() => {
-              setIsPlaying(true)
-              autoPlayNextRef.current = false
-              setShouldAutoPlay(false)
-            }).catch(console.error)
-          }
-        }, 100)
-      }
+      return () => clearTimeout(timer)
     }
-  }, [currentTrack, shouldAutoPlay, setIsPlaying, setShouldAutoPlay])
+  }, [selectedTrackIndex, currentTrack])
 
-  const handlePlay = () => {
-    setIsPlaying(true)
-  }
-
-  const handlePause = () => {
-    setIsPlaying(false)
-  }
-
+  // Minimal event handlers - NO state management
   const handleEnded = () => {
     console.log('Track finished, playing next...')
-    autoPlayNextRef.current = true
-    setIsPlaying(true)
     
-    const nextTrack = playNext()
-    if (nextTrack) {
-      toast.success(`Playing next: ${nextTrack.filename}`)
-    } else {
-      toast.info('Playlist finished')
-      setIsPlaying(false)
-    }
+    // Use selectedTrackIndex from context for circular navigation
+    const nextIndex = selectedTrackIndex !== null && selectedTrackIndex < playlist.length - 1 
+      ? selectedTrackIndex + 1 
+      : 0
+    selectTrackByIndex(nextIndex)
   }
 
-const handleError = (e: Event | Error) => {    
-  console.error('Audio error:', e)
+  const handleError = (e: Event | Error) => {    
+    console.error('Audio error:', e)
     toast.error('Failed to load audio')
-    setIsPlaying(false)
   }
 
-  const handleClickNext = () => {
-    console.log('Next button clicked')
-    autoPlayNextRef.current = true
-    setIsPlaying(true)
-    
-    const nextTrack = playNext()
-    if (nextTrack) {
-      toast.success(`Playing next: ${nextTrack.filename}`)
-    } else {
-      toast.info('End of playlist')
-      setIsPlaying(false)
-    }
-  }
-
-  const handleClickPrevious = () => {
-    console.log('Previous button clicked')
-    autoPlayNextRef.current = true
-    setIsPlaying(true)
-    
-    const previousTrack = playPrevious()
-    if (previousTrack) {
-      toast.success(`Playing previous: ${previousTrack.filename}`)
-    } else {
-      toast.info('Start of playlist')
-      setIsPlaying(false)
-    }
-  }
-
-  if (!currentTrack) {
+  if (!currentTrack || playlist.length === 0) {
     return (
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-2 sm:p-4">
         <div className="max-w-6xl mx-auto min-w-[340px]">
@@ -144,6 +95,16 @@ const handleError = (e: Event | Error) => {
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-2 sm:p-4 shadow-lg">
       <div className="max-w-6xl mx-auto min-w-[300px]">
         
+        {/* Real-time display - Always at the top */}
+        <div className="mb-2 flex justify-center">
+          <RealTimeDisplay
+            filename={currentTrack.filename}
+            currentTime={currentTime}
+            isPlaying={false}
+            date={currentTrack.date}
+          />
+        </div>
+
         {/* Track info header for mobile */}
         {isMobile && (
           <div className="mb-3 text-center">
@@ -152,12 +113,6 @@ const handleError = (e: Event | Error) => {
             </h3>
             <div className="text-xs text-slate-600 truncate">
               <span className="truncate">{currentTrack.place}</span>
-              {currentTrack.date && (
-                <>
-                  <span className="text-slate-400 mx-1">•</span>
-                  <span className="text-slate-500">{currentTrack.date}</span>
-                </>
-              )}
             </div>
           </div>
         )}
@@ -167,19 +122,14 @@ const handleError = (e: Event | Error) => {
           <AudioPlayer
             ref={playerRef}
             src={audioUrl}
-            onPlay={handlePlay}
-            onPause={handlePause}
+            showSkipControls={false}
             onEnded={handleEnded}
             onError={handleError}
-            onClickNext={handleClickNext}
-            onClickPrevious={handleClickPrevious}
-            showJumpControls={true}
-            showSkipControls={true}
+            showJumpControls={false}
             showFilledVolume={true}
             showDownloadProgress={true}
             showFilledProgress={true}
             volumeJumpStep={0.01}
-            progressJumpSteps={{ backward: 5000, forward: 5000 }}
             customAdditionalControls={!isMobile ? [
               <div key="track-info" className="absolute left-4 top-0 bottom-8 flex flex-col justify-center text-left max-w-[300px] pr-4">
                 <h3 className="font-semibold text-sm truncate text-slate-800">
@@ -187,12 +137,6 @@ const handleError = (e: Event | Error) => {
                 </h3>
                 <div className="text-xs text-slate-600 truncate">
                   <span className="truncate">{currentTrack.place}</span>
-                  {currentTrack.date && (
-                    <>
-                      <span className="text-slate-400 mx-1">•</span>
-                      <span className="text-slate-500">{currentTrack.date}</span>
-                    </>
-                  )}
                 </div>
               </div>
             ] : []}
