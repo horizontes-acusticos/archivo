@@ -13,7 +13,9 @@ import {
   Volume2, 
   VolumeX,
   RotateCcw,
-  RotateCw
+  RotateCw,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react'
 
 export const HowlerAudioPlayer: React.FC = () => {
@@ -28,6 +30,7 @@ export const HowlerAudioPlayer: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [showMobileVolume, setShowMobileVolume] = useState(false)
+  const [isMinimized, setIsMinimized] = useState(false)
 
   // Check screen size
   useEffect(() => {
@@ -206,6 +209,10 @@ export const HowlerAudioPlayer: React.FC = () => {
     setShowMobileVolume(!showMobileVolume)
   }
 
+  const toggleMinimized = () => {
+    setIsMinimized(!isMinimized)
+  }
+
   const formatTime = (seconds: number): string => {
     if (!seconds || isNaN(seconds)) return '--:--'
     const mins = Math.floor(seconds / 60)
@@ -229,35 +236,86 @@ export const HowlerAudioPlayer: React.FC = () => {
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-2 sm:p-4 shadow-lg">
       <div className="max-w-6xl mx-auto min-w-[300px]">
         
-        {/* Real-time display - Always at the top */}
-        <div className="mb-2 flex justify-center">
-          <RealTimeDisplay
-            filename={currentTrack.filename}
-            currentTime={currentTime}
-            isPlaying={isPlaying}
-            date={currentTrack.date}
-          />
+        {/* Minimize/Maximize button - top right */}
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={toggleMinimized}
+            className="p-1 hover:bg-slate-100 rounded transition-colors"
+            title={isMinimized ? 'Expand player' : 'Minimize player'}
+          >
+            {isMinimized ? (
+              <ChevronUp className="w-4 h-4 text-slate-600" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-slate-600" />
+            )}
+          </button>
         </div>
 
-        {/* Track info header for mobile */}
-        {isMobile && (
-          <div className="mb-3 text-center">
-            <h3 className="font-semibold text-sm truncate text-slate-800">
-              {currentTrack.filename}
-            </h3>
-            <div className="text-xs text-slate-600 truncate">
-              <span className="truncate">{currentTrack.place}</span>
+        {isMinimized ? (
+          /* MINIMIZED STATE */
+          <div className="flex items-center justify-between">
+            {/* Left: RealTime display + Track info */}
+            <div className="flex-1 min-w-0 pr-4">
+              <div className="flex items-center gap-3">
+                <RealTimeDisplay
+                  filename={currentTrack.filename}
+                  currentTime={currentTime}
+                  isPlaying={isPlaying}
+                  date={currentTrack.date}
+                />
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-sm truncate text-slate-800">
+                    {currentTrack.filename}
+                  </h3>
+                  <div className="text-xs text-slate-600 truncate">
+                    <span className="truncate">{currentTrack.place}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Play/Pause + Next controls */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePlayPause}
+                disabled={isLoading}
+                className="p-2 bg-slate-800 hover:bg-slate-700 text-white rounded-full transition-colors disabled:opacity-50"
+                title={isPlaying ? 'Pause' : 'Play'}
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : isPlaying ? (
+                  <Pause className="w-5 h-5" />
+                ) : (
+                  <Play className="w-5 h-5 ml-0.5" />
+                )}
+              </button>
+
+              <button
+                onClick={handleNext}
+                className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                title="Next track"
+              >
+                <SkipForward className="w-5 h-5 text-slate-700" />
+              </button>
             </div>
           </div>
-        )}
+        ) : (
+          /* FULL STATE */
+          <>
+            {/* Real-time display - Always at the top */}
+            <div className="mb-2 flex justify-center">
+              <RealTimeDisplay
+                filename={currentTrack.filename}
+                currentTime={currentTime}
+                isPlaying={isPlaying}
+                date={currentTrack.date}
+              />
+            </div>
 
-        {/* Audio Player */}
-        <div className="w-full relative">
-          {/* Controls row */}
-          <div className="flex items-center justify-between mb-2">
-            {/* Track info - Left side (desktop only) */}
-            {!isMobile && (
-              <div className="flex-1 min-w-0 pr-4">
+            {/* Track info header for mobile */}
+            {isMobile && (
+              <div className="mb-3 text-center">
                 <h3 className="font-semibold text-sm truncate text-slate-800">
                   {currentTrack.filename}
                 </h3>
@@ -267,172 +325,190 @@ export const HowlerAudioPlayer: React.FC = () => {
               </div>
             )}
 
-            {/* Left spacer for mobile to keep transport centered */}
-            {isMobile && <div className="flex-1" />}
-
-            {/* Transport controls - Always centered */}
-            <div className="flex items-center gap-4">
-              {/* Jump controls */}
-              <button
-                onClick={handleRewind}
-                className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-                title="Rewind 5 seconds"
-              >
-                <RotateCcw className="w-5 h-5 text-slate-600" />
-              </button>
-
-              {/* Previous button */}
-              <button
-                onClick={handlePrevious}
-                className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-                title="Previous track"
-              >
-                <SkipBack className="w-6 h-6 text-slate-700" />
-              </button>
-
-              {/* Play/Pause button */}
-              <button
-                onClick={handlePlayPause}
-                disabled={isLoading}
-                className="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded-full transition-colors disabled:opacity-50"
-                title={isPlaying ? 'Pause' : 'Play'}
-              >
-                {isLoading ? (
-                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : isPlaying ? (
-                  <Pause className="w-6 h-6" />
-                ) : (
-                  <Play className="w-6 h-6 ml-0.5" />
-                )}
-              </button>
-
-              {/* Next button */}
-              <button
-                onClick={handleNext}
-                className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-                title="Next track"
-              >
-                <SkipForward className="w-6 h-6 text-slate-700" />
-              </button>
-
-              {/* Fast forward */}
-              <button
-                onClick={handleFastForward}
-                className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-                title="Fast forward 5 seconds"
-              >
-                <RotateCw className="w-5 h-5 text-slate-600" />
-              </button>
-            </div>
-
-            {/* Volume controls - Right side */}
-            <div className="flex items-center gap-2 flex-1 justify-end pl-4 relative">
-              {!isMobile ? (
-                /* Desktop volume - horizontal slider */
-                <>
-                  <button
-                    onClick={toggleMute}
-                    className="p-1 hover:bg-slate-100 rounded transition-colors"
-                    title={isMuted ? 'Unmute' : 'Mute'}
-                  >
-                    {isMuted ? (
-                      <VolumeX className="w-5 h-5 text-slate-600" />
-                    ) : (
-                      <Volume2 className="w-5 h-5 text-slate-600" />
-                    )}
-                  </button>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={isMuted ? 0 : volume}
-                    onChange={handleVolumeChange}
-                    className="w-20 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer"
-                    style={{
-                      background: `linear-gradient(to right, #1e293b 0%, #1e293b ${(isMuted ? 0 : volume) * 100}%, #e2e8f0 ${(isMuted ? 0 : volume) * 100}%, #e2e8f0 100%)`
-                    }}
-                  />
-                </>
-              ) : (
-                /* Mobile volume - popup button */
-                <>
-                  <button
-                    onClick={toggleMobileVolume}
-                    className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-                    title={isMuted ? 'Unmute' : 'Volume'}
-                  >
-                    {isMuted ? (
-                      <VolumeX className="w-5 h-5 text-slate-600" />
-                    ) : (
-                      <Volume2 className="w-5 h-5 text-slate-600" />
-                    )}
-                  </button>
-
-                  {/* Vertical volume slider popup */}
-                  {showMobileVolume && (
-                    <div 
-                      ref={volumePopupRef}
-                      className="absolute bottom-full mb-2 right-0 bg-white border border-slate-200 rounded-lg shadow-lg p-3 z-10"
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <button
-                          onClick={toggleMute}
-                          className="p-1 hover:bg-slate-100 rounded transition-colors"
-                          title={isMuted ? 'Unmute' : 'Mute'}
-                        >
-                          {isMuted ? (
-                            <VolumeX className="w-4 h-4 text-slate-600" />
-                          ) : (
-                            <Volume2 className="w-4 h-4 text-slate-600" />
-                          )}
-                        </button>
-                        
-                        {/* Vertical slider */}
-                        <div className="relative h-20 w-6 flex items-center justify-center">
-                          <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.01"
-                            value={isMuted ? 0 : volume}
-                            onChange={handleVolumeChange}
-                            className="vertical-slider h-20 w-1 bg-slate-200 rounded-full appearance-none cursor-pointer"
-                            style={{
-                              background: `linear-gradient(to top, #1e293b 0%, #1e293b ${(isMuted ? 0 : volume) * 100}%, #e2e8f0 ${(isMuted ? 0 : volume) * 100}%, #e2e8f0 100%)`
-                            }}
-                          />
-                        </div>
-                        
-                        {/* Volume percentage */}
-                        <span className="text-xs text-slate-500">
-                          {Math.round((isMuted ? 0 : volume) * 100)}%
-                        </span>
-                      </div>
+            {/* Audio Player */}
+            <div className="w-full relative">
+              {/* Controls row */}
+              <div className="flex items-center justify-between mb-2">
+                {/* Track info - Left side (desktop only) */}
+                {!isMobile && (
+                  <div className="flex-1 min-w-0 pr-4">
+                    <h3 className="font-semibold text-sm truncate text-slate-800">
+                      {currentTrack.filename}
+                    </h3>
+                    <div className="text-xs text-slate-600 truncate">
+                      <span className="truncate">{currentTrack.place}</span>
                     </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
+                  </div>
+                )}
 
-          {/* Progress bar - Now at the bottom */}
-          <div>
-            <div 
-              className="w-full h-1 bg-slate-200 rounded-full cursor-pointer"
-              onClick={handleSeek}
-            >
-              <div 
-                className="h-full bg-slate-800 rounded-full transition-all duration-100"
-                style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
-              />
+                {/* Left spacer for mobile to keep transport centered */}
+                {isMobile && <div className="flex-1" />}
+
+                {/* Transport controls - Always centered */}
+                <div className="flex items-center gap-4">
+                  {/* Jump controls */}
+                  <button
+                    onClick={handleRewind}
+                    className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                    title="Rewind 5 seconds"
+                  >
+                    <RotateCcw className="w-5 h-5 text-slate-600" />
+                  </button>
+
+                  {/* Previous button */}
+                  <button
+                    onClick={handlePrevious}
+                    className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                    title="Previous track"
+                  >
+                    <SkipBack className="w-6 h-6 text-slate-700" />
+                  </button>
+
+                  {/* Play/Pause button */}
+                  <button
+                    onClick={handlePlayPause}
+                    disabled={isLoading}
+                    className="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded-full transition-colors disabled:opacity-50"
+                    title={isPlaying ? 'Pause' : 'Play'}
+                  >
+                    {isLoading ? (
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : isPlaying ? (
+                      <Pause className="w-6 h-6" />
+                    ) : (
+                      <Play className="w-6 h-6 ml-0.5" />
+                    )}
+                  </button>
+
+                  {/* Next button */}
+                  <button
+                    onClick={handleNext}
+                    className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                    title="Next track"
+                  >
+                    <SkipForward className="w-6 h-6 text-slate-700" />
+                  </button>
+
+                  {/* Fast forward */}
+                  <button
+                    onClick={handleFastForward}
+                    className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                    title="Fast forward 5 seconds"
+                  >
+                    <RotateCw className="w-5 h-5 text-slate-600" />
+                  </button>
+                </div>
+
+                {/* Volume controls - Right side */}
+                <div className="flex items-center gap-2 flex-1 justify-end pl-4 relative">
+                  {!isMobile ? (
+                    /* Desktop volume - horizontal slider */
+                    <>
+                      <button
+                        onClick={toggleMute}
+                        className="p-1 hover:bg-slate-100 rounded transition-colors"
+                        title={isMuted ? 'Unmute' : 'Mute'}
+                      >
+                        {isMuted ? (
+                          <VolumeX className="w-5 h-5 text-slate-600" />
+                        ) : (
+                          <Volume2 className="w-5 h-5 text-slate-600" />
+                        )}
+                      </button>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={isMuted ? 0 : volume}
+                        onChange={handleVolumeChange}
+                        className="w-20 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer"
+                        style={{
+                          background: `linear-gradient(to right, #1e293b 0%, #1e293b ${(isMuted ? 0 : volume) * 100}%, #e2e8f0 ${(isMuted ? 0 : volume) * 100}%, #e2e8f0 100%)`
+                        }}
+                      />
+                    </>
+                  ) : (
+                    /* Mobile volume - popup button */
+                    <>
+                      <button
+                        onClick={toggleMobileVolume}
+                        className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                        title={isMuted ? 'Unmute' : 'Volume'}
+                      >
+                        {isMuted ? (
+                          <VolumeX className="w-5 h-5 text-slate-600" />
+                        ) : (
+                          <Volume2 className="w-5 h-5 text-slate-600" />
+                        )}
+                      </button>
+
+                      {/* Vertical volume slider popup */}
+                      {showMobileVolume && (
+                        <div 
+                          ref={volumePopupRef}
+                          className="absolute bottom-full mb-2 right-0 bg-white border border-slate-200 rounded-lg shadow-lg p-3 z-10"
+                        >
+                          <div className="flex flex-col items-center gap-2">
+                            <button
+                              onClick={toggleMute}
+                              className="p-1 hover:bg-slate-100 rounded transition-colors"
+                              title={isMuted ? 'Unmute' : 'Mute'}
+                            >
+                              {isMuted ? (
+                                <VolumeX className="w-4 h-4 text-slate-600" />
+                              ) : (
+                                <Volume2 className="w-4 h-4 text-slate-600" />
+                              )}
+                            </button>
+                            
+                            {/* Vertical slider */}
+                            <div className="relative h-20 w-6 flex items-center justify-center">
+                              <input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value={isMuted ? 0 : volume}
+                                onChange={handleVolumeChange}
+                                className="vertical-slider h-20 w-1 bg-slate-200 rounded-full appearance-none cursor-pointer"
+                                style={{
+                                  background: `linear-gradient(to top, #1e293b 0%, #1e293b ${(isMuted ? 0 : volume) * 100}%, #e2e8f0 ${(isMuted ? 0 : volume) * 100}%, #e2e8f0 100%)`
+                                }}
+                              />
+                            </div>
+                            
+                            {/* Volume percentage */}
+                            <span className="text-xs text-slate-500">
+                              {Math.round((isMuted ? 0 : volume) * 100)}%
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Progress bar - Now at the bottom */}
+              <div>
+                <div 
+                  className="w-full h-1 bg-slate-200 rounded-full cursor-pointer"
+                  onClick={handleSeek}
+                >
+                  <div 
+                    className="h-full bg-slate-800 rounded-full transition-all duration-100"
+                    style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs text-slate-500 mt-1">
+                  <span>{formatTime(currentTime)}</span>
+                  <span>{formatTime(duration)}</span>
+                </div>
+              </div>
             </div>
-            <div className="flex justify-between text-xs text-slate-500 mt-1">
-              <span>{formatTime(currentTime)}</span>
-              <span>{formatTime(duration)}</span>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   )
