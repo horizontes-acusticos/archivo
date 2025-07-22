@@ -184,7 +184,7 @@ const handleError = (e: Event | Error) => {
             progressJumpSteps={{ backward: 5000, forward: 5000 }}
             customAdditionalControls={!isMobile ? [
               <div key="track-info" className="absolute left-4 top-0 bottom-8 flex flex-col justify-center text-left max-w-[300px] pr-4">
-                <h3 className="font-semibold text-sm truncate text-slate-1200">
+                <h3 className="font-semibold text-sm truncate text-slate-800">
                   {currentTrack.filename}
                 </h3>
                 <div className="text-xs text-slate-600 truncate">
