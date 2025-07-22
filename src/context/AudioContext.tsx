@@ -1,3 +1,5 @@
+'use client'
+
 import React, { createContext, useContext, useState, ReactNode } from 'react'
 
 export interface AudioTrack {
@@ -10,9 +12,21 @@ export interface AudioTrack {
   isAvailable: string
 }
 
+/* --------- 1.  Extend the shape that components expect --------- */
 interface AudioContextType {
+  /* playlist */
   playlist: AudioTrack[]
   setPlaylist: (tracks: AudioTrack[]) => void
+
+  /* currently playing track */
+  currentTrack: AudioTrack | null
+  setCurrentTrack: (track: AudioTrack | null) => void
+
+  /* play / pause flag (for UI) */
+  isPlaying: boolean
+  setIsPlaying: (b: boolean) => void
+
+  /* index-based helpers still used by the table */
   selectedTrackIndex: number | null
   highlightedTrackIndex: number | null
   selectTrackByIndex: (index: number) => void
@@ -22,11 +36,9 @@ interface AudioContextType {
 const AudioContext = createContext<AudioContextType | undefined>(undefined)
 
 export const useAudio = () => {
-  const context = useContext(AudioContext)
-  if (context === undefined) {
-    throw new Error('useAudio must be used within an AudioProvider')
-  }
-  return context
+  const ctx = useContext(AudioContext)
+  if (!ctx) throw new Error('useAudio must be used within an AudioProvider')
+  return ctx
 }
 
 interface AudioProviderProps {
@@ -34,27 +46,40 @@ interface AudioProviderProps {
 }
 
 export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
+  /* playlist */
   const [playlist, setPlaylist] = useState<AudioTrack[]>([])
+
+  /* playback */
+  const [currentTrack, setCurrentTrack] = useState<AudioTrack | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  /* table helpers */
   const [selectedTrackIndex, setSelectedTrackIndex] = useState<number | null>(null)
   const [highlightedTrackIndex, setHighlightedTrackIndex] = useState<number | null>(null)
 
   const selectTrackByIndex = (index: number) => {
     if (index >= 0 && index < playlist.length) {
       setSelectedTrackIndex(index)
-      setHighlightedTrackIndex(null) // Clear highlight when playing
+      setHighlightedTrackIndex(null)
+      setCurrentTrack(playlist[index])
     }
   }
 
   const highlightTrackByIndex = (index: number) => {
-    if (index >= 0 && index < playlist.length) {
-      setHighlightedTrackIndex(index)
-    }
+    if (index >= 0 && index < playlist.length) setHighlightedTrackIndex(index)
   }
 
+  /* --------- 2.  Provide the extended context --------- */
   return (
     <AudioContext.Provider value={{
       playlist,
       setPlaylist,
+
+      currentTrack,
+      setCurrentTrack,
+      isPlaying,
+      setIsPlaying,
+
       selectedTrackIndex,
       highlightedTrackIndex,
       selectTrackByIndex,
