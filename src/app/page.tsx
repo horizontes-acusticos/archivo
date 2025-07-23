@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { AudioDataTable } from '@/components/AudioDataTable'
-import { useAudio } from '@/context/AudioContext'
+import { useAudioStore } from '@/stores/audioStore'
 import { useCsvAudioData } from "@/hooks/useCsvAudioData"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -15,7 +15,8 @@ const CSV_URLS = {
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<keyof typeof CSV_URLS>('autumn')
-  const { playlist, setPlaylist } = useAudio()
+  // Use Zustand store instead of React Context
+  const { playlist, setPlaylist } = useAudioStore()
   
   // Load all tracks from all seasons into the global playlist
   const { tracks: autumnTracks } = useCsvAudioData(CSV_URLS.autumn, 'autumn')
@@ -23,12 +24,34 @@ export default function Home() {
   const { tracks: springTracks } = useCsvAudioData(CSV_URLS.spring, 'spring')
   const { tracks: summerTracks } = useCsvAudioData(CSV_URLS.summer, 'summer')
   
-  // Combine all tracks and set global playlist
+  // Combine all tracks and set global playlist with enhanced debugging
   React.useEffect(() => {
+    console.log('🏠 Page effect triggered')
+    console.log('🏠 Track counts:', {
+      autumn: autumnTracks.length,
+      winter: winterTracks.length, 
+      spring: springTracks.length,
+      summer: summerTracks.length
+    })
+    
     const allTracks = [...autumnTracks, ...winterTracks, ...springTracks, ...summerTracks]
+    console.log('🏠 Combined tracks count:', allTracks.length)
+    console.log('🏠 Current playlist length:', playlist.length)
+    
     if (allTracks.length > 0 && playlist.length === 0) {
+      console.log('🏠 Setting playlist with', allTracks.length, 'tracks')
+      console.log('🏠 First track from each season:')
+      console.log('  - Autumn:', autumnTracks[0]?.filename, autumnTracks[0]?.id)
+      console.log('  - Winter:', winterTracks[0]?.filename, winterTracks[0]?.id)
+      console.log('  - Spring:', springTracks[0]?.filename, springTracks[0]?.id)
+      console.log('  - Summer:', summerTracks[0]?.filename, summerTracks[0]?.id)
+      
       setPlaylist(allTracks)
-      console.log(`✅ Loaded ${allTracks.length} total tracks across all seasons`)
+      console.log('✅ Playlist set successfully')
+    } else if (allTracks.length === 0) {
+      console.log('⏳ Still loading tracks...')
+    } else {
+      console.log('📝 Playlist already exists, skipping')
     }
   }, [autumnTracks, winterTracks, springTracks, summerTracks, playlist.length, setPlaylist])
   

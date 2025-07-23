@@ -30,7 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { AudioTrack, useAudio } from "@/context/AudioContext"
+import { AudioTrack, useAudioStore, useTableStore } from "@/stores/audioStore"
 
 export const columns: ColumnDef<AudioTrack>[] = [
   { 
@@ -72,7 +72,10 @@ interface AudioDataTableProps {
 export function AudioDataTable({ data }: AudioDataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [filter, setFilter] = React.useState("")
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+  
+  // Use Zustand stores instead of React Context
+  const { currentTrack, setCurrentTrack } = useAudioStore()
+  const { columnVisibility, setColumnVisibility } = useTableStore()
 
   // Only show available tracks
   const availableData = React.useMemo(
@@ -98,10 +101,15 @@ export function AudioDataTable({ data }: AudioDataTableProps) {
     columns,
     state: { 
       sorting,
-      columnVisibility,
+      columnVisibility: columnVisibility as VisibilityState,
     },
     onSortingChange: setSorting,
-    onColumnVisibilityChange: setColumnVisibility,
+    onColumnVisibilityChange: (updater) => {
+      const newVisibility = typeof updater === 'function' 
+        ? updater(columnVisibility as VisibilityState)
+        : updater
+      setColumnVisibility(newVisibility)
+    },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -111,8 +119,6 @@ export function AudioDataTable({ data }: AudioDataTableProps) {
       },
     },
   })
-
-  const { currentTrack, setCurrentTrack } = useAudio()
 
   return (
     <div className="w-full space-y-4">

@@ -27,7 +27,8 @@
     "react-dom": "^19.0.0",
     "sonner": "^2.0.6",
     "tailwind-merge": "^3.3.1",
-    "wavesurfer.js": "^7.9.9"
+    "wavesurfer.js": "^7.9.9",
+    "zustand": "^5.0.6"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react'
 import { Howl } from 'howler'
-import { useAudio } from '@/context/AudioContext'
+import { useAudioStore } from '@/stores/audioStore'
 import { toast } from 'sonner'
 import { RealTimeDisplay } from './RealTimeDisplay'
 import { 
@@ -19,7 +19,8 @@ import {
 } from 'lucide-react'
 
 export const HowlerAudioPlayer: React.FC = () => {
-  const { currentTrack, playNext, playPrevious } = useAudio()
+  // Use Zustand store instead of React Context
+  const { currentTrack, playNext, playPrevious } = useAudioStore()
   const howlRef = useRef<Howl | null>(null)
   const volumePopupRef = useRef<HTMLDivElement>(null)  // Add this ref
   const [isMobile, setIsMobile] = useState(false)
@@ -44,9 +45,17 @@ export const HowlerAudioPlayer: React.FC = () => {
     return () => window.removeEventListener('resize', checkScreenSize)
   }, [])
 
-  // Define handlers before useEffect
+  // Define handlers with enhanced debugging
   const handleNext = () => {
+    console.log('🎮 Next button clicked from HowlerAudioPlayer')
+    console.log('🎮 Current track:', currentTrack?.filename, currentTrack?.season)
     playNext()
+  }
+
+  const handlePrevious = () => {
+    console.log('🎮 Previous button clicked from HowlerAudioPlayer') 
+    console.log('🎮 Current track:', currentTrack?.filename, currentTrack?.season)
+    playPrevious()
   }
 
   // Initialize Howl when track changes
@@ -159,10 +168,6 @@ export const HowlerAudioPlayer: React.FC = () => {
     } else {
       howlRef.current.play()
     }
-  }
-
-  const handlePrevious = () => {
-    playPrevious()
   }
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
