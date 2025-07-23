@@ -221,7 +221,7 @@ export const HowlerAudioPlayer: React.FC = () => {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-2 sm:p-4">
         <div className="max-w-6xl mx-auto min-w-[340px]">
           <div className="text-center text-slate-500">
-            <p>Select a track to start playing</p>
+            <p>Haz doble click en una pista para empezar a escuchar...</p>
           </div>
         </div>
       </div>
