@@ -274,6 +274,14 @@ export function AudioDataTable({ data }: AudioDataTableProps) {
           </Button>
         </div>
       )}
+      
+      {/* Track count display */}
+      <div className="flex justify-end py-2">
+        <div className="text-sm text-slate-600">
+          Cantidad de pistas: <span className="font-semibold">{data.length}</span>
+        </div>
+      </div>
+      
       {/* SpectrogramPlayer removed: component not found */}
     </div>
   )

@@ -2,44 +2,43 @@
 
 import React, { useState } from 'react'
 import { AudioDataTable } from '@/components/AudioDataTable'
-import { useAudioStore } from '@/stores/audioStore'
-import { useCsvAudioData } from "@/hooks/useCsvAudioData"
+import { useAudioStore, AudioTrack } from '@/stores/audioStore'
+import { useAllCsvData } from "@/hooks/useAllCsvData"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-const CSV_URLS = {
-  autumn: "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s01.csv",
-  winter: "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s02.csv",
-  spring: "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s03.csv",
-  summer: "https://archivo-prod.sfo3.digitaloceanspaces.com/audio/s04.csv"
-} 
+type SeasonKey = 'autumn' | 'winter' | 'spring' | 'summer' 
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<keyof typeof CSV_URLS>('autumn')
-  // Use Zustand store instead of React Context
+  const [activeTab, setActiveTab] = useState<SeasonKey>('autumn')
   const { playlist, setPlaylist } = useAudioStore()
   
-  // Load all tracks from all seasons into the global playlist
-  const { tracks: autumnTracks } = useCsvAudioData(CSV_URLS.autumn, 'autumn')
-  const { tracks: winterTracks } = useCsvAudioData(CSV_URLS.winter, 'winter')
-  const { tracks: springTracks } = useCsvAudioData(CSV_URLS.spring, 'spring')
-  const { tracks: summerTracks } = useCsvAudioData(CSV_URLS.summer, 'summer')
+  // Use the new reliable CSV loader
+  const { 
+    allTracks, 
+    loading: allLoading, 
+    errors,
+    autumnTracks,
+    winterTracks,
+    springTracks,
+    summerTracks
+  } = useAllCsvData()
   
-  // Combine all tracks and set global playlist with enhanced debugging
+  // Set global playlist when all data is loaded
   React.useEffect(() => {
     console.log('🏠 Page effect triggered')
-    console.log('🏠 Track counts:', {
+    console.log('🏠 All CSV loading state:', allLoading)
+    console.log('🏠 Errors:', errors)
+    console.log('🏠 Total tracks loaded:', allTracks.length)
+    console.log('🏠 Track counts by season:', {
       autumn: autumnTracks.length,
-      winter: winterTracks.length, 
+      winter: winterTracks.length,
       spring: springTracks.length,
       summer: summerTracks.length
     })
     
-    const allTracks = [...autumnTracks, ...winterTracks, ...springTracks, ...summerTracks]
-    console.log('🏠 Combined tracks count:', allTracks.length)
-    console.log('🏠 Current playlist length:', playlist.length)
-    
-    if (allTracks.length > 0 && playlist.length === 0) {
-      console.log('🏠 Setting playlist with', allTracks.length, 'tracks')
+    // Only set playlist when loading is complete and we have tracks
+    if (!allLoading && allTracks.length > 0 && playlist.length === 0) {
+      console.log('🏠 Setting playlist with', allTracks.length, 'tracks from all seasons')
       console.log('🏠 First track from each season:')
       console.log('  - Autumn:', autumnTracks[0]?.filename, autumnTracks[0]?.id)
       console.log('  - Winter:', winterTracks[0]?.filename, winterTracks[0]?.id)
@@ -47,13 +46,15 @@ export default function Home() {
       console.log('  - Summer:', summerTracks[0]?.filename, summerTracks[0]?.id)
       
       setPlaylist(allTracks)
-      console.log('✅ Playlist set successfully')
-    } else if (allTracks.length === 0) {
-      console.log('⏳ Still loading tracks...')
-    } else {
-      console.log('📝 Playlist already exists, skipping')
+      console.log('✅ Playlist set successfully with all seasons')
+    } else if (!allLoading && allTracks.length === 0) {
+      console.log('⚠️ No tracks loaded after CSV processing completed')
+    } else if (allLoading) {
+      console.log('⏳ Still loading CSV data...')
+    } else if (playlist.length > 0) {
+      console.log('� Playlist already exists with', playlist.length, 'tracks')
     }
-  }, [autumnTracks, winterTracks, springTracks, summerTracks, playlist.length, setPlaylist])
+  }, [allTracks, allLoading, playlist.length, setPlaylist, autumnTracks, winterTracks, springTracks, summerTracks, errors])
   
   return (
     <div className="min-h-screen pb-64">
@@ -65,30 +66,58 @@ export default function Home() {
           </p>
         </header>
         
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as keyof typeof CSV_URLS)}>
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as SeasonKey)}>
           <div className="mb-6">
             <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-y-6 sm:gap-y-0 p-2">
-              <TabsTrigger value="autumn" className="text-xs sm:text-sm truncate">Otoño (S01)</TabsTrigger>
-              <TabsTrigger value="winter" className="text-xs sm:text-sm truncate">Invierno (S02)</TabsTrigger>
-              <TabsTrigger value="spring" className="text-xs sm:text-sm truncate">Primavera (S03)</TabsTrigger>
-              <TabsTrigger value="summer" className="text-xs sm:text-sm truncate">Verano (S04)</TabsTrigger>
+              <TabsTrigger value="autumn" className="text-xs sm:text-sm truncate">
+                Otoño (S01)
+              </TabsTrigger>
+              <TabsTrigger value="winter" className="text-xs sm:text-sm truncate">
+                Invierno (S02)
+              </TabsTrigger>
+              <TabsTrigger value="spring" className="text-xs sm:text-sm truncate">
+                Primavera (S03)
+              </TabsTrigger>
+              <TabsTrigger value="summer" className="text-xs sm:text-sm truncate">
+                Verano (S04)
+              </TabsTrigger>
             </TabsList>
           </div>
           
           <TabsContent value="autumn">
-            <SeasonContent csvUrl={CSV_URLS.autumn} season="autumn" />
+            <SeasonContent 
+              tracks={autumnTracks} 
+              season="autumn" 
+              loading={allLoading} 
+              error={errors.autumn} 
+            />
           </TabsContent>
           
           <TabsContent value="winter">
-            <SeasonContent csvUrl={CSV_URLS.winter} season="winter" />
+            <SeasonContent 
+              tracks={winterTracks} 
+              season="winter" 
+              loading={allLoading} 
+              error={errors.winter} 
+            />
           </TabsContent>
           
           <TabsContent value="spring">
-            <SeasonContent csvUrl={CSV_URLS.spring} season="spring" />
+            <SeasonContent 
+              tracks={springTracks} 
+              season="spring" 
+              loading={allLoading} 
+              error={errors.spring} 
+            />
           </TabsContent>
           
           <TabsContent value="summer">
-            <SeasonContent csvUrl={CSV_URLS.summer} season="summer" />
+            <SeasonContent 
+              tracks={summerTracks} 
+              season="summer" 
+              loading={allLoading} 
+              error={errors.summer} 
+            />
           </TabsContent>
         </Tabs>
       </div>
@@ -96,15 +125,18 @@ export default function Home() {
   )
 }
 
-function SeasonContent({ csvUrl, season }: { csvUrl: string; season: string }) {
-  const { tracks, loading, error } = useCsvAudioData(csvUrl, season)
-  
+function SeasonContent({ tracks, season, loading, error }: { 
+  tracks: AudioTrack[]; 
+  season: string; 
+  loading: boolean; 
+  error?: string; 
+}) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600 mx-auto mb-2"></div>
-          <p>Loading {season} tracks...</p>
+          <p>Loading all seasons...</p>
         </div>
       </div>
     )
@@ -116,6 +148,16 @@ function SeasonContent({ csvUrl, season }: { csvUrl: string; season: string }) {
         <div className="text-center text-red-600">
           <p>Error loading {season} tracks:</p>
           <p className="text-sm">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (tracks.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center text-amber-600">
+          <p>No tracks found for {season}</p>
         </div>
       </div>
     )
