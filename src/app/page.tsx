@@ -60,7 +60,7 @@ export default function Home() {
     <div className="min-h-screen pb-64">
       <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
         <header className="mb-4 sm:mb-8">
-          <h1 className="text-2xl sm:text-4xl font-bold text-center mb-2">Archivo Horizontes Acústicos</h1>
+          <h1 className="text-2xl sm:text-4xl font-bold text-center mb-2">Dispositivo Aural de Escucha Compartida</h1>
           <p className="text-slate-600 text-center text-xs sm:text-sm">
             
           </p>

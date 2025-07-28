@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Archivo Horizontes Acústicos",
-  description: "Archivo de audio para https://horizontesacusticos.cl/",
+  title: "Dispositivo Aural de Escucha Compartida",
+  description: "Archivo de audio",
 };
 
 export default function RootLayout({
