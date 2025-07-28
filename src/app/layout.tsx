@@ -2,22 +2,25 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { AudioProvider } from "@/context/AudioContext";
 import { AudioPlayer } from "@/components/HowlerAudioPlayer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: 'swap', // Improves loading performance
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: 'swap',
+  preload: false, // Don't preload mono font if not immediately used
 });
 
 export const metadata: Metadata = {
-  title: "Archivo Horizontes Acústicos",
-  description: "Archivo de audio para https://horizontesacusticos.cl/",
+  title: "Dispositivo Aural de Escucha Compartida",
+  description: "Archivo de audio",
 };
 
 export default function RootLayout({
@@ -30,10 +33,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AudioProvider>
-          {children}
-          <AudioPlayer />
-        </AudioProvider>
+        {/* No more AudioProvider needed - using Zustand! */}
+        {children}
+        <AudioPlayer />
         <Toaster />
       </body>
     </html>
