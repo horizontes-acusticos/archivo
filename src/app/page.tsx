@@ -62,7 +62,7 @@ export default function Home() {
         <header className="mb-4 sm:mb-8">
           <h1 className="text-2xl sm:text-4xl font-bold text-center mb-2">Dispositivo Aural de Escucha Compartida</h1>
           <p className="text-slate-600 text-center text-xs sm:text-sm">
-            
+            Una travesía sonora por la selva valdiviana: 350 horas grabadas a lo largo de 2023, entre las cuatro estaciones y los ecos de la cordillera costera de Valdivia.
           </p>
         </header>
         

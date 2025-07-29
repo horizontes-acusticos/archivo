@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Dispositivo Aural de Escucha Compartida",
-  description: "Archivo de audio",
+  description: "350 horas de selva valdiviana, grabadas durante las cuatro estaciones del 2023, en la cordillera de la costa de la comuna de Valdivia",
 };
 
 export default function RootLayout({
