@@ -70,16 +70,16 @@ export default function Home() {
           <div className="mb-6">
             <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-y-6 sm:gap-y-0 p-2">
               <TabsTrigger value="autumn" className="text-xs sm:text-sm truncate">
-                Otoño (S01)
+                Otoño
               </TabsTrigger>
               <TabsTrigger value="winter" className="text-xs sm:text-sm truncate">
-                Invierno (S02)
+                Invierno
               </TabsTrigger>
               <TabsTrigger value="spring" className="text-xs sm:text-sm truncate">
-                Primavera (S03)
+                Primavera
               </TabsTrigger>
               <TabsTrigger value="summer" className="text-xs sm:text-sm truncate">
-                Verano (S04)
+                Verano
               </TabsTrigger>
             </TabsList>
           </div>
